@@ -55,7 +55,7 @@ jobs:
   emulator-tests:
     name: Android emulator tests
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
 
     steps:
       - name: Checkout Nezabudka source
@@ -82,6 +82,15 @@ jobs:
         with:
           gradle-version: '8.13'
 
+      - name: Enable KVM acceleration
+        run: |
+          if [ ! -e /dev/kvm ]; then
+            echo "::error::KVM device is not available on this runner"
+            exit 1
+          fi
+          sudo chmod 666 /dev/kvm
+          ls -l /dev/kvm
+
       - name: Run tests on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -106,9 +115,14 @@ jobs:
           if-no-files-found: warn
 
       - name: Save Android logs
-        if: always()
+        if: ${{ !cancelled() }}
+        timeout-minutes: 1
         run: |
-          adb logcat -d -t 10000 > android-logcat.txt 2>&1 || true
+          if timeout 10s adb get-state 2>/dev/null | grep -qx device; then
+            timeout 20s adb logcat -d -t 10000 > android-logcat.txt 2>&1 || true
+          else
+            echo "No running Android emulator; logcat skipped." > android-logcat.txt
+          fi
 
       - name: Upload Android logs
         if: always()
