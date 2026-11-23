@@ -1,0 +1,120 @@
+
+name: Nezabudka Android Tests
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout Nezabudka source
+        uses: actions/checkout@v4
+        with:
+          repository: obermot/nezabudka-for-codex
+          ref: 140fb1cf91afc83f4d2f74eee6cad734ace3866c
+          token: ${{ secrets.NEZABUDKA_SOURCE_TOKEN }}
+          persist-credentials: false
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Check Android SDK
+        run: |
+          test -d "$ANDROID_HOME"
+          test -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+
+      - name: Run unit tests
+        run: gradle :app:testDebugUnitTest --stacktrace
+
+      - name: Save unit test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nezabudka-unit-test-reports
+          path: |
+            app/build/reports/tests/
+            app/build/test-results/
+          retention-days: 30
+          if-no-files-found: warn
+
+  emulator-tests:
+    name: Android emulator tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout Nezabudka source
+        uses: actions/checkout@v4
+        with:
+          repository: obermot/nezabudka-for-codex
+          ref: 140fb1cf91afc83f4d2f74eee6cad734ace3866c
+          token: ${{ secrets.NEZABUDKA_SOURCE_TOKEN }}
+          persist-credentials: false
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Check Android SDK
+        run: |
+          test -d "$ANDROID_HOME"
+          test -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+
+      - name: Run tests on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: true
+          emulator-boot-timeout: 600
+          script: gradle :app:connectedDebugAndroidTest --stacktrace
+
+      - name: Save emulator test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nezabudka-emulator-test-reports
+          path: |
+            app/build/reports/androidTests/
+            app/build/outputs/androidTest-results/
+            app/build/outputs/connected_android_test_additional_output/
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Save Android logs
+        if: always()
+        run: |
+          adb logcat -d -t 10000 > android-logcat.txt 2>&1 || true
+
+      - name: Upload Android logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nezabudka-android-logs
+          path: android-logcat.txt
+          retention-days: 30
+          if-no-files-found: warn
