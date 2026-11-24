@@ -1,0 +1,12 @@
+{
+  "alpha": 3,
+  "launch": 1,
+  "application_repository": "obermot/nezabudka-for-codex",
+  "application_commit": "140fb1cf91afc83f4d2f74eee6cad734ace3866c",
+  "reviewed_preparation_commit": "0090e00016c3e03e63256074e557c8e3506d7583",
+  "original_scenarios": {
+    "unit": 731,
+    "android": 78
+  },
+  "authorization": "Owner explicitly requested preparation and launch of Alpha 3 on 2026-11-24"
+}
