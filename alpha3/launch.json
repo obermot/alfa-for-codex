@@ -1,10 +1,11 @@
 {
   "campaign": "Alpha 3",
-  "launch": 2,
+  "launch": 3,
   "scope": "android",
   "source_commit": "140fb1cf91afc83f4d2f74eee6cad734ace3866c",
-  "reviewed_preparation_commit": "24bcddfa709ecd21547d0eeece2d718ce619281b",
+  "reviewed_preparation_commit": "e7fc3d3b414ce226fedd803af570d02f7c60a29d",
   "reuse_unit_run": 45304531993,
   "baseline_unit_scenarios": 731,
-  "baseline_android_scenarios": 78
+  "baseline_android_scenarios": 78,
+  "reason": "Verified residual selector/navigation errors and stale foreground-notification contamination"
 }
