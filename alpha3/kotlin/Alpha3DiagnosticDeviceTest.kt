@@ -114,7 +114,7 @@ class Alpha3DiagnosticDeviceTest : FinalDeviceFixture() {
         ui.onNodeWithText("Тёмная тема").assertIsNotEnabled()
         ui.onNodeWithText("Светлая тема").assertIsEnabled()
         evidence("matrix-light-theme-and-disabled-dark")
-        device.pressBack();text("Текущие напоминания")
+        device.pressBack();text("Настройки");device.pressBack();text("Текущие напоминания")
         tap("Адаптивность: длинный текст напоминания для проверки двух строк")
         val back=ui.onNodeWithContentDescription("Назад").fetchSemanticsNode().boundsInRoot
         tap("Адаптивность: длинный текст напоминания для проверки двух строк")

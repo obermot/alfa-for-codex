@@ -17,6 +17,25 @@ import org.json.JSONObject
 
 /** Test-only infrastructure. Never linked into the application APK. */
 internal object Alpha3TestSupport {
+    fun resetPresentation(inst: Instrumentation) {
+        val app=inst.targetContext
+        inst.runOnMainSync {
+            app.stopService(android.content.Intent(app,FinalTalarmPresentationService::class.java))
+            app.getSystemService(android.app.NotificationManager::class.java).cancelAll()
+        }
+        val manager=app.getSystemService(android.app.NotificationManager::class.java)
+        val deadline=android.os.SystemClock.elapsedRealtime()+5_000
+        while(manager.activeNotifications.isNotEmpty() && android.os.SystemClock.elapsedRealtime()<deadline)
+            android.os.SystemClock.sleep(25)
+        check(manager.activeNotifications.isEmpty()) {"Previous test left app notifications"}
+        inst.waitForIdleSync()
+    }
+
+    fun tapHomeMenu(ui: ComposeTestRule) {
+        val b=ui.onNodeWithText("Все").fetchSemanticsNode().boundsInRoot
+        ui.onRoot().performTouchInput {click(Offset(b.right+115*b.width/170,b.center.y))}
+    }
+
     fun clearPersistedSession(context: Context) {
         // onPause writes asynchronously. Drain its real writer before deleting all AtomicFile variants.
         val writerField=FinalUiSessionStore::class.java.getDeclaredField("writer").apply { isAccessible=true }

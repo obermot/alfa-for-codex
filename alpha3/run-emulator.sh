@@ -13,8 +13,10 @@ collect() {
   adb shell -n settings get system font_scale >> "alpha3-evidence/$target/display.txt" 2>&1
   adb shell -n getprop > "alpha3-evidence/$target/device-properties.txt" 2>&1
   adb shell -n dumpsys window > "alpha3-evidence/$target/windows.txt" 2>&1
+  adb shell -n mkdir -p /sdcard/Android/data/com.nezabudka.preview/files/device-evidence
   if adb pull /sdcard/Android/data/com.nezabudka.preview/files/device-evidence "alpha3-evidence/$target/" > "alpha3-evidence/$target/pull.txt" 2>&1; then
     printf 'OK\n' > "alpha3-evidence/$target/pull-status.txt"
+    adb shell -n mv /sdcard/Android/data/com.nezabudka.preview/files/device-evidence /sdcard/Android/data/com.nezabudka.preview/files/collected-"$target" || failure=1
   else
     printf 'FAILED\n' > "alpha3-evidence/$target/pull-status.txt"
     failure=1
