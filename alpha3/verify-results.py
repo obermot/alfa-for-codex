@@ -69,6 +69,10 @@ def main():
   if len(night_rows)!=297:errors.append('Expected 297 night actual/reference image pairs')
   report['night_uk_candidate_count']=len(list((root/'app/build/alpha3-evidence/pdf87-night-uk').glob('*.png')))
   if report['night_uk_candidate_count']!=297:errors.append('Expected 297 night Ukrainian candidates')
+  for theme_folder in ['pdf87-en','pdf87-night-en']:
+   count=len(list((root/'app/build/alpha3-evidence'/theme_folder).glob('*.png')))
+   report[theme_folder+'_count']=count
+   if count!=297:errors.append('Expected 297 separate English candidates: '+theme_folder)
  report['errors']=errors;a.output.parent.mkdir(parents=True,exist_ok=True);a.output.write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
  print(json.dumps({k:v for k,v in report.items() if k not in ['tests','pdf87_ru']},ensure_ascii=False,indent=2))
  if errors:raise SystemExit(1)

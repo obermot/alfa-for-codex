@@ -4,12 +4,12 @@ from pathlib import Path
 import argparse, hashlib, json, re, subprocess, difflib
 
 HERE=Path(__file__).resolve().parent
-PIN='140fb1cf91afc83f4d2f74eee6cad734ace3866c'
+PIN='203e9e1cee402851d458b92efe822896a0042e89'
 def sha(b):return hashlib.sha256(b).hexdigest()
 def git(root,*args):return subprocess.check_output(['git','-C',str(root),*args],text=True).strip()
 def method_names(s):return sorted(re.findall(r'\bfun\s+(`[^`]+`|\w+)\s*\(',s))
 def protected(root):
-    return {p:sha((root/p).read_bytes()) for p in git(root,'ls-files').splitlines()
+    return {p:sha((root/p).read_bytes()) for p in git(root,'ls-files','-z').split('\0') if p
             if not (p.startswith(('app/src/test/','app/src/androidTest/')) and p.endswith('.kt')) and (root/p).is_file()}
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--source',type=Path,required=True)
@@ -19,7 +19,7 @@ def main():
         assert git(root,'rev-parse','HEAD')==PIN,'Unexpected application commit'
         assert not git(root,'status','--porcelain'),'Application checkout must be clean before overlay'
     baseline=json.loads((HERE/'expected-tests.json').read_text())
-    assert len(baseline['unit'])==734 and len(baseline['android'])==78
+    assert len(baseline['unit'])==739 and len(baseline['android'])==78
     before=protected(root) if not args.fixture else {}
     updates={};diffs=[]
     for entry in json.loads((HERE/'test-edits.json').read_text()):

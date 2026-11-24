@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: obermot/nezabudka-for-codex
-          ref: 140fb1cf91afc83f4d2f74eee6cad734ace3866c
+          ref: 203e9e1cee402851d458b92efe822896a0042e89
           token: ${{ secrets.NEZABUDKA_SOURCE_TOKEN }}
           path: source
           persist-credentials: false
@@ -64,6 +64,7 @@ jobs:
       - name: Verify exact patch contexts and apply test-only overlay
         id: prepare
         run: |
+          python3 ci/pdf87_release_check.py
           python3 ../infra/alpha3/prepare-tests.py --source . --check-only
           python3 ../infra/alpha3/prepare-tests.py --source .
           python3 ../infra/alpha3/provenance.py
@@ -112,7 +113,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: obermot/nezabudka-for-codex
-          ref: 140fb1cf91afc83f4d2f74eee6cad734ace3866c
+          ref: 203e9e1cee402851d458b92efe822896a0042e89
           token: ${{ secrets.NEZABUDKA_SOURCE_TOKEN }}
           path: source
           persist-credentials: false
@@ -166,7 +167,7 @@ jobs:
       - name: Record night-theme ru evidence with the existing PDF87 scenarios
         if: ${{ always() && steps.prepare.outcome == 'success' }}
         env:
-          NEZ_UI_ruUAGE: ru
+          NEZ_UI_LANGUAGE: ru
           NEZ_UI_THEME: dark
           NEZ_PDF87_CAPTURE_DIR: ${{ github.workspace }}/source/app/build/alpha3-evidence/pdf87-night-ru
         run: |
@@ -176,13 +177,39 @@ jobs:
       - name: Record night-theme uk evidence with the existing PDF87 scenarios
         if: ${{ always() && steps.prepare.outcome == 'success' }}
         env:
-          NEZ_UI_ukUAGE: uk
+          NEZ_UI_LANGUAGE: uk
           NEZ_UI_THEME: dark
           NEZ_PDF87_CAPTURE_DIR: ${{ github.workspace }}/source/app/build/alpha3-evidence/pdf87-night-uk
         run: |
           gradle :app:testDebugUnitTest --tests '*FinalPdf87GoldenTest' -PpdfVisualMode=record -PpdfGoldenDir="$PWD/app/src/test/snapshots/pdf87-night" --stacktrace \
             2>&1 | tee alpha3-evidence/pdf87-night-uk-gradle.txt
           cp -a app/build/test-results alpha3-evidence/pdf87-night-uk-results
+      - name: Record light English evidence with the existing PDF87 scenarios
+        if: ${{ always() && steps.prepare.outcome == 'success' }}
+        env:
+          NEZ_UI_LANGUAGE: en
+          NEZ_UI_THEME: light
+          NEZ_PDF87_CAPTURE_DIR: ${{ github.workspace }}/source/app/build/alpha3-evidence/pdf87-en
+        run: |
+          gradle :app:testDebugUnitTest --tests '*FinalPdf87GoldenTest' -PpdfVisualMode=record --stacktrace \
+            2>&1 | tee alpha3-evidence/pdf87-en-gradle.txt
+          cp -a app/build/test-results alpha3-evidence/pdf87-en-results
+      - name: Record dark English evidence with the existing PDF87 scenarios
+        if: ${{ always() && steps.prepare.outcome == 'success' }}
+        env:
+          NEZ_UI_LANGUAGE: en
+          NEZ_UI_THEME: dark
+          NEZ_PDF87_CAPTURE_DIR: ${{ github.workspace }}/source/app/build/alpha3-evidence/pdf87-night-en
+        run: |
+          gradle :app:testDebugUnitTest --tests '*FinalPdf87GoldenTest' -PpdfVisualMode=record --stacktrace \
+            2>&1 | tee alpha3-evidence/pdf87-night-en-gradle.txt
+          cp -a app/build/test-results alpha3-evidence/pdf87-night-en-results
+      - name: Check lint and application system limits
+        if: ${{ always() && steps.prepare.outcome == 'success' }}
+        run: |
+          gradle :app:lintDebug --stacktrace 2>&1 | tee alpha3-evidence/lint-gradle.txt
+          python3 ci/system_impact_audit.py
+          python3 ci/ui_regex_icu_check.py
       - name: Generate actual/reference comparisons and verify protected files
         if: ${{ always() && steps.prepare.outcome == 'success' }}
         run: |
@@ -223,7 +250,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: obermot/nezabudka-for-codex
-          ref: 140fb1cf91afc83f4d2f74eee6cad734ace3866c
+          ref: 203e9e1cee402851d458b92efe822896a0042e89
           token: ${{ secrets.NEZABUDKA_SOURCE_TOKEN }}
           path: source
           persist-credentials: false

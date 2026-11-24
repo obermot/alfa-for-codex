@@ -1,11 +1,10 @@
 {
   "campaign": "Alpha 3",
-  "launch": 3,
-  "scope": "android",
-  "source_commit": "140fb1cf91afc83f4d2f74eee6cad734ace3866c",
-  "reviewed_preparation_commit": "e7fc3d3b414ce226fedd803af570d02f7c60a29d",
-  "reuse_unit_run": 45304531993,
-  "baseline_unit_scenarios": 731,
+  "launch": 4,
+  "scope": "full",
+  "source_commit": "203e9e1cee402851d458b92efe822896a0042e89",
+  "reviewed_preparation_commit": "ba6ab832cc3160d21915798bd6c0e56f98566100",
+  "baseline_unit_scenarios": 739,
   "baseline_android_scenarios": 78,
-  "reason": "Verified residual selector/navigation errors and stale foreground-notification contamination"
+  "reason": "Verified day/night and Rus/Ukr/Eng source: isolated single-Done fix, English UI/instruction and approved reminder fixes"
 }
