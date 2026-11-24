@@ -1,97 +1,226 @@
-
 name: Nezabudka Alpha 3
+run-name: Alpha №3 — fixed application and test overlay
 
 on:
   workflow_dispatch:
+  push:
+    branches: [alpha-3]
+    paths: [alpha3/launch.json]
 
 permissions:
   contents: read
 
+concurrency:
+  group: alpha3-${{ github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+    working-directory: source
+
 jobs:
+  preflight:
+    name: Verify overlay and compile both Kotlin test suites
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout test infrastructure
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: infra
+          persist-credentials: false
+      - name: Checkout pinned application
+        uses: actions/checkout@v4
+        with:
+          repository: obermot/nezabudka-for-codex
+          ref: 140fb1cf91afc83f4d2f74eee6cad734ace3866c
+          token: ${{ secrets.NEZABUDKA_SOURCE_TOKEN }}
+          path: source
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+      - name: Verify exact patch contexts and apply test-only overlay
+        id: prepare
+        run: |
+          python3 ../infra/alpha3/prepare-tests.py --source . --check-only
+          python3 ../infra/alpha3/prepare-tests.py --source .
+          python3 ../infra/alpha3/provenance.py
+      - name: Provide the official offline model to TEST APK only
+        run: |
+          mkdir -p app/src/androidTest/assets
+          curl --fail --location --retry 2 --max-time 300 \
+            https://alphacephei.com/vosk/models/vosk-model-small-ru-0.22.zip \
+            --output app/src/androidTest/assets/vosk-model-small-ru-0.22.zip
+          python3 -m zipfile -t app/src/androidTest/assets/vosk-model-small-ru-0.22.zip
+          sha256sum app/src/androidTest/assets/vosk-model-small-ru-0.22.zip > alpha3-evidence/test-model-sha256.txt
+      - name: Compile Kotlin tests before enabling the full runs
+        run: |
+          test -d "$ANDROID_HOME"
+          gradle :app:compileDebugUnitTestKotlin :app:compileDebugAndroidTestKotlin \
+            :app:assembleDebug :app:assembleDebugAndroidTest --stacktrace \
+            2>&1 | tee alpha3-evidence/preflight-compile.txt
+          python3 ../infra/alpha3/verify-results.py --source . --output alpha3-evidence/protected-source.json
+      - name: Preserve compilation evidence and exact APKs
+        if: always()
+        run: python3 ../infra/alpha3/inventory.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: alpha3-preflight
+          path: |
+            source/alpha3-evidence/
+            source/app/build/outputs/apk/
+          retention-days: 30
+          if-no-files-found: error
+
   unit-tests:
-    name: Unit tests
+    name: All 731 unit scenarios and PDF87 evidence
+    needs: preflight
     runs-on: ubuntu-latest
     timeout-minutes: 45
-
     steps:
-      - name: Checkout Nezabudka source
+      - name: Checkout test infrastructure
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: infra
+          persist-credentials: false
+      - name: Checkout pinned application
         uses: actions/checkout@v4
         with:
           repository: obermot/nezabudka-for-codex
           ref: 140fb1cf91afc83f4d2f74eee6cad734ace3866c
           token: ${{ secrets.NEZABUDKA_SOURCE_TOKEN }}
+          path: source
           persist-credentials: false
-
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-
-      - name: Check Android SDK
-        run: |
-          test -d "$ANDROID_HOME"
-          test -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.13'
-
-      - name: Run unit tests
-        run: gradle :app:testDebugUnitTest --stacktrace
-
-      - name: Save unit test reports
+      - name: Check and apply identical overlay
+        id: prepare
+        run: |
+          python3 ../infra/alpha3/prepare-tests.py --source . --check-only
+          python3 ../infra/alpha3/prepare-tests.py --source .
+          python3 ../infra/alpha3/provenance.py
+      - name: Execute every original unit scenario
+        env:
+          NEZ_STARTUP_CAPTURE_DIR: ${{ github.workspace }}/source/alpha3-evidence/startup-robolectric
+        run: |
+          set +e
+          gradle :app:testDebugUnitTest --stacktrace 2>&1 | tee alpha3-evidence/baseline-unit-gradle.txt
+          result=${PIPESTATUS[0]}
+          cp -a app/build/test-results alpha3-evidence/baseline-unit-results
+          cp -a app/build/reports/tests alpha3-evidence/baseline-unit-html
+          python3 ../infra/alpha3/verify-results.py --source . --suite unit \
+            --results alpha3-evidence/baseline-unit-results --output alpha3-evidence/baseline-unit-coverage.json
+          coverage=$?
+          if (( result!=0 || coverage!=0 )); then exit 1; fi
+      - name: Record actual Russian images in a separate unapproved directory
+        if: ${{ always() && steps.prepare.outcome == 'success' }}
+        env:
+          NEZ_UI_LANGUAGE: ru
+          NEZ_PDF87_CAPTURE_DIR: ${{ github.workspace }}/source/app/build/alpha3-evidence/pdf87-actual-ru
+        run: |
+          gradle :app:testDebugUnitTest --tests '*FinalPdf87GoldenTest' -PpdfVisualMode=record --stacktrace \
+            2>&1 | tee alpha3-evidence/pdf87-actual-ru-gradle.txt
+          cp -a app/build/test-results alpha3-evidence/pdf87-actual-ru-results
+      - name: Record Ukrainian candidates without replacing approved references
+        if: ${{ always() && steps.prepare.outcome == 'success' }}
+        env:
+          NEZ_UI_LANGUAGE: uk
+          NEZ_PDF87_CAPTURE_DIR: ${{ github.workspace }}/source/app/build/alpha3-evidence/pdf87-candidate-uk
+        run: |
+          gradle :app:testDebugUnitTest --tests '*FinalPdf87GoldenTest' -PpdfVisualMode=record --stacktrace \
+            2>&1 | tee alpha3-evidence/pdf87-candidate-uk-gradle.txt
+          cp -a app/build/test-results alpha3-evidence/pdf87-candidate-uk-results
+      - name: Generate actual/reference comparisons and verify protected files
+        if: ${{ always() && steps.prepare.outcome == 'success' }}
+        run: |
+          python3 -m pip install --user Pillow==11.3.0
+          python3 ../infra/alpha3/verify-results.py --source . --images --output alpha3-evidence/pdf87-evidence-check.json
+      - name: Inventory all evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        run: python3 ../infra/alpha3/inventory.py
+      - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: nezabudka-unit-test-reports
+          name: alpha3-unit-and-pdf87
           path: |
-            app/build/reports/tests/
-            app/build/test-results/
+            source/alpha3-evidence/
+            source/app/build/reports/tests/
+            source/app/build/reports/pdf87/
+            source/app/build/test-results/
+            source/app/build/alpha3-evidence/
+            source/app/build/alpha3-scale-evidence/
+            source/app/src/test/snapshots/pdf87/
           retention-days: 30
-          if-no-files-found: warn
+          if-no-files-found: error
 
   emulator-tests:
-    name: Android emulator tests
+    name: All 78 Android scenarios, unresolved cases and screen matrix
+    needs: preflight
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-
+    timeout-minutes: 90
     steps:
-      - name: Checkout Nezabudka source
+      - name: Checkout test infrastructure
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: infra
+          persist-credentials: false
+      - name: Checkout pinned application
         uses: actions/checkout@v4
         with:
           repository: obermot/nezabudka-for-codex
           ref: 140fb1cf91afc83f4d2f74eee6cad734ace3866c
           token: ${{ secrets.NEZABUDKA_SOURCE_TOKEN }}
+          path: source
           persist-credentials: false
-
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-
-      - name: Check Android SDK
-        run: |
-          test -d "$ANDROID_HOME"
-          test -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.13'
-
+      - name: Check and apply identical overlay
+        id: prepare
+        run: |
+          python3 ../infra/alpha3/prepare-tests.py --source . --check-only
+          python3 ../infra/alpha3/prepare-tests.py --source .
+          python3 ../infra/alpha3/provenance.py
+      - name: Provide the same official test model
+        run: |
+          curl --fail --location --retry 2 --max-time 300 \
+            https://alphacephei.com/vosk/models/vosk-model-small-ru-0.22.zip \
+            --output app/src/androidTest/assets/vosk-model-small-ru-0.22.zip
+          python3 -m zipfile -t app/src/androidTest/assets/vosk-model-small-ru-0.22.zip
+          sha256sum app/src/androidTest/assets/vosk-model-small-ru-0.22.zip > alpha3-evidence/test-model-sha256.txt
       - name: Enable KVM acceleration
         run: |
-          if [ ! -e /dev/kvm ]; then
-            echo "::error::KVM device is not available on this runner"
-            exit 1
-          fi
+          test -e /dev/kvm
           sudo chmod 666 /dev/kvm
-          ls -l /dev/kvm
-
-      - name: Run tests on Android emulator
+      - name: Execute baseline, diagnostics and device evidence collection while emulator lives
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
@@ -100,34 +229,23 @@ jobs:
           profile: pixel_6
           disable-animations: true
           emulator-boot-timeout: 600
-          script: |
-            mkdir -p alpha3-evidence
-            adb logcat -b all -v threadtime > alpha3-evidence/android-logcat.txt 2>&1 &
-            LOG_PID=$!
-            set +e
-            gradle :app:connectedDebugAndroidTest --stacktrace
-            RESULT=$?
-            adb shell wm size > alpha3-evidence/display.txt
-            adb shell wm density >> alpha3-evidence/display.txt
-            adb shell getprop > alpha3-evidence/device-properties.txt
-            adb pull /sdcard/Android/data/com.nezabudka.preview/files/device-evidence alpha3-evidence/device-evidence || true
-            adb pull /sdcard/Android/data/com.nezabudka.preview.test/files/device-evidence alpha3-evidence/test-device-evidence || true
-            kill "$LOG_PID" || true
-            find app/build/outputs/apk -name '*.apk' -exec sha256sum {} + > alpha3-evidence/apk-sha256.txt
-            git rev-parse HEAD > alpha3-evidence/source-commit.txt
-            exit "$RESULT"
-
-      - name: Save emulator test reports
+          working-directory: source
+          script: bash "$GITHUB_WORKSPACE/infra/alpha3/run-emulator.sh"
+      - name: Verify protected functional source and references
+        if: ${{ always() && steps.prepare.outcome == 'success' }}
+        run: python3 ../infra/alpha3/verify-results.py --source . --output alpha3-evidence/protected-source.json
+      - name: Inventory all evidence even after failure
         if: always()
-        uses: actions/upload-artifact@v4
+        run: python3 ../infra/alpha3/inventory.py
+      - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: nezabudka-emulator-test-reports
+          name: alpha3-android-and-screen-matrix
           path: |
-            app/build/reports/androidTests/
-            app/build/outputs/androidTest-results/
-            app/build/outputs/connected_android_test_additional_output/
-            app/build/outputs/apk/
-            alpha3-evidence/
+            source/alpha3-evidence/
+            source/app/build/reports/androidTests/
+            source/app/build/outputs/androidTest-results/
+            source/app/build/outputs/connected_android_test_additional_output/
+            source/app/build/outputs/apk/
           retention-days: 30
-          if-no-files-found: warn
-
+          if-no-files-found: error

@@ -1,0 +1,214 @@
+[
+  {
+    "path": "app/src/androidTest/java/com/nezabudka/testharness/FinalDeviceFixture.kt",
+    "base_sha256": "4c8e41349e4edeba9411a8d4a21c9beacdc00b160ea38c53af42a92e02447354",
+    "edits": [
+      {
+        "old": "        db.clearAllTables()",
+        "new": "        db.clearAllTables()\n        Alpha3TestSupport.clearPersistedSession(app)",
+        "count": 1
+      },
+      {
+        "old": "        try {\n            val dir = File(app.getExternalFilesDir(null), \"device-evidence\").apply { mkdirs() }",
+        "new": "        try {\n            Alpha3TestSupport.capture(inst, ui, name.methodName)\n            val dir = File(app.getExternalFilesDir(null), \"device-evidence\").apply { check(isDirectory || mkdirs()) }",
+        "count": 1
+      }
+    ],
+    "patched_sha256": "00ad1de610f8f01a0ad8882b1d5fc2089e7cf86a372433b9f5416eee9aaaacfe"
+  },
+  {
+    "path": "app/src/androidTest/java/com/nezabudka/testharness/FinalDeviceRegressionTest.kt",
+    "base_sha256": "3ba612fb72cb17b45221c395e6a76384848cf9d8b6b18fcb05f93427c9d93e7f",
+    "edits": [
+      {
+        "old": "        db.clearAllTables()",
+        "new": "        db.clearAllTables()\n        Alpha3TestSupport.clearPersistedSession(context)",
+        "count": 1
+      },
+      {
+        "old": "        try {\n            val dir = File(context.getExternalFilesDir(null), \"device-evidence\").apply { mkdirs() }",
+        "new": "        try {\n            Alpha3TestSupport.capture(instrumentation, compose, testName.methodName)\n            val dir = File(context.getExternalFilesDir(null), \"device-evidence\").apply { check(isDirectory || mkdirs()) }",
+        "count": 1
+      },
+      {
+        "old": "    @Test fun changingDailyTimePersistsAndSurvivesReopen() {\n        tap(\"Проверка времени\")\n        tap(\"Ежедневно\")\n        tap(\"Изменить время\")\n        awaitText(\"14\")\n        // Hit the visible hour-up arrow, relative to the actual rendered hour bounds.\n        // This exercises touch delivery through the PDF canvas rather than invoking callbacks.\n        val hour = compose.onNodeWithText(\"14\").fetchSemanticsNode().boundsInRoot\n        compose.onRoot().performTouchInput {\n            click(Offset(hour.right + hour.width * 0.22f, hour.center.y))\n        }\n        tap(\"Сохранить\")\n        compose.waitUntil(15_000) { storedTime() == \"917\" }\n        tapHome()\n        tap(\"Проверка времени\")\n        tap(\"Ежедневно\")\n        tap(\"Изменить время\")\n        compose.onNodeWithText(\"15\").assertExists()\n        Assert.assertEquals(\"917\", storedTime())\n    }\n    private fun tapHome() {\n        compose.onNodeWithContentDescription(\"На главную\").performTouchInput { click() }\n        awaitText(\"Проверка времени\")\n    }\n    private fun keyboardVisible(): Boolean {\n        var visible = false\n        scenario?.onActivity {\n            visible = ViewCompat.getRootWindowInsets(it.window.decorView)\n                ?.isVisible(WindowInsetsCompat.Type.ime()) == true\n        }\n        return visible\n    }",
+        "new": "    @Test fun changingDailyTimePersistsAndSurvivesReopen() {\n        tap(\"Проверка времени\")\n        tap(\"Повторять напоминание?\")\n        tap(\"Изменить время\")\n        awaitText(\"14\")\n        // Hit the visible hour-up arrow, relative to the actual rendered hour bounds.\n        // This exercises touch delivery through the PDF canvas rather than invoking callbacks.\n        val hour = compose.onNodeWithText(\"14\").fetchSemanticsNode().boundsInRoot\n        compose.onRoot().performTouchInput {\n            click(Offset(hour.right + hour.width * 0.22f, hour.center.y))\n        }\n        tap(\"Сохранить\")\n        compose.waitUntil(15_000) { storedTime() == \"917\" }\n        tapHome()\n        tap(\"Проверка времени\")\n        tap(\"Повторять напоминание?\")\n        tap(\"Изменить время\")\n        compose.onNodeWithText(\"15\").assertExists()\n        Assert.assertEquals(\"917\", storedTime())\n    }\n    private fun tapHome() {\n        compose.onNodeWithContentDescription(\"На главную\").performTouchInput { click() }\n        awaitText(\"Проверка времени\")\n    }\n    private fun keyboardVisible(): Boolean {\n        var visible = false\n        scenario?.onActivity {\n            visible = ViewCompat.getRootWindowInsets(it.window.decorView)\n                ?.isVisible(WindowInsetsCompat.Type.ime()) == true\n        }\n        return visible\n    }",
+        "count": 1
+      }
+    ],
+    "patched_sha256": "83b316157840108139e38ef45215bb1a3b6071903fc6fa93be3323b2954a404d"
+  },
+  {
+    "path": "app/src/test/java/com/nezabudka/testharness/FinalScaleEnvelopeUiTest.kt",
+    "base_sha256": "0c90d60939d78d2a1f93fc92f4fdf12a5458c1503692ca555ee742c36dd5973c",
+    "edits": [
+      {
+        "old": "        val dir=File(\"/workspace/Nezabudka/work/sixth-ui\");dir.mkdirs()",
+        "new": "        val dir=File(\"build/alpha3-scale-evidence\").absoluteFile\n        check(dir.isDirectory || dir.mkdirs()) { \"Cannot create evidence directory: $dir\" }",
+        "count": 1
+      }
+    ],
+    "patched_sha256": "069cbaef739d1b1eb875f31f614f5f1418273e5560be5928ed5df17d8c0ec26c"
+  },
+  {
+    "path": "app/src/androidTest/java/com/nezabudka/testharness/FinalAlarmDeviceTest.kt",
+    "base_sha256": "367a04ee6ca6dfb2e186dc05de14cd31f44e9989b5c92edac3afc6013ece06d0",
+    "edits": [
+      {
+        "old": "    @Test fun overlayTapOpensFullOverLauncherAndCloseAcknowledges() {\n        shell(\"appops set ${app.packageName} SYSTEM_ALERT_WINDOW allow\")\n        main();device.pressHome()\n        val id=runBlocking { service.createOneShot(\"Нажатие на всплывающую карточку\",System.currentTimeMillis()+15_000) }\n        val e=runBlocking { dao.eventsForReminder(id).single().id }\n        val card=By.descContains(\"Незабудка. Напоминание:\")\n        Assert.assertTrue(\"Overlay visible over launcher\",device.wait(Until.hasObject(card),20_000))\n        // Exclude the recent-foreground/just-delivered grace period: the visible overlay\n        // must be sufficient even when the user does not react immediately.\n        android.os.SystemClock.sleep(12_000)\n        val bounds=device.findObject(card).visibleBounds\n        device.click(bounds.centerX(),bounds.centerY())\n        text(\"Напомнить снова\")\n        Assert.assertTrue(\"Actual overlay tap launches full Activity\",resumed(FinalAlarmActivity::class.java))\n        Assert.assertEquals(EventState.FIRING,event(e)?.state)\n        Assert.assertTrue(\"Accessible full-screen close\",device.wait(Until.hasObject(By.desc(\"Закрыть\")),10_000))\n        device.findObject(By.desc(\"Закрыть\")).click()\n        await(\"overlay-to-full close acknowledged and removed\") {\n            event(e)?.state==EventState.ACKNOWLEDGED && reminder(id)?.state==ReminderState.DELETED\n        }\n        Assert.assertFalse(FinalAlarmSignalPlayer.isActive(e))\n    }",
+        "new": "    @Test fun overlayTapOpensFullOverLauncherAndCloseAcknowledges() {\n        shell(\"appops set ${app.packageName} SYSTEM_ALERT_WINDOW allow\")\n        main();device.pressHome()\n        val id=runBlocking { service.createOneShot(\"Нажатие на всплывающую карточку\",System.currentTimeMillis()+15_000) }\n        val e=runBlocking { dao.eventsForReminder(id).single().id }\n        val card=By.descContains(\"Незабудка. Напоминание:\")\n        Assert.assertTrue(\"Overlay visible over launcher\",device.wait(Until.hasObject(card),20_000))\n        // Exclude the recent-foreground/just-delivered grace period: the visible overlay\n        // must be sufficient even when the user does not react immediately.\n        android.os.SystemClock.sleep(12_000)\n        val bounds=device.findObject(card).visibleBounds\n        device.click(bounds.centerX(),bounds.centerY())\n        text(\"Напомнить снова\")\n        Assert.assertTrue(\"Actual overlay tap launches full Activity\",resumed(FinalAlarmActivity::class.java))\n        Assert.assertEquals(EventState.ACKNOWLEDGED,event(e)?.state)\n        Assert.assertNotNull(event(e)?.acknowledgedAt)\n        Assert.assertFalse(FinalAlarmSignalPlayer.isActive(e))\n        Assert.assertTrue(\"Accessible full-screen close\",device.wait(Until.hasObject(By.desc(\"Закрыть\")),10_000))\n        device.findObject(By.desc(\"Закрыть\")).click()\n        await(\"overlay-to-full close acknowledged and removed\") {\n            event(e)?.state==EventState.ACKNOWLEDGED && reminder(id)?.state==ReminderState.DELETED\n        }\n        Assert.assertFalse(FinalAlarmSignalPlayer.isActive(e))\n    }",
+        "count": 1
+      },
+      {
+        "old": "    @Test fun customSnoozeClockSurvivesRecreationWithoutAcknowledging() {\n        val (_,e)=seed(due=FinalReminderService.localMillis(java.time.LocalDate.now(),0,0))\n        full(e);tap(\"Напомнить снова\");tap(\"+другое\")\n        recreateCurrent()\n        ui.onAllNodesWithText(\"00\").assertCountEquals(2)\n        Assert.assertEquals(EventState.FIRING,event(e)?.state)\n        closeAlarm()\n        text(\"Выберите будущее время!\")\n        Assert.assertEquals(EventState.FIRING,event(e)?.state)\n    }",
+        "new": "    @Test fun customSnoozeClockSurvivesRecreationWithoutAcknowledging() {\n        val (_,e)=seed(due=FinalReminderService.localMillis(java.time.LocalDate.now(),0,0))\n        full(e);tap(\"Напомнить снова\");tap(\"+другое\")\n        recreateCurrent()\n        ui.onAllNodesWithText(\"00\").assertCountEquals(2)\n        Assert.assertEquals(EventState.ACKNOWLEDGED,event(e)?.state)\n        Assert.assertNotNull(event(e)?.acknowledgedAt)\n        Assert.assertFalse(FinalAlarmSignalPlayer.isActive(e))\n        closeAlarm()\n        text(\"Выберите будущее время!\")\n        Assert.assertEquals(EventState.ACKNOWLEDGED,event(e)?.state)\n        Assert.assertNotNull(event(e)?.acknowledgedAt)\n        Assert.assertFalse(FinalAlarmSignalPlayer.isActive(e))\n    }",
+        "count": 1
+      },
+      {
+        "old": "    @Test fun customClockDigitsDoNotSaveAndCloseRejectsPastTime() {\n        val (_,e) = seed(due=FinalReminderService.localMillis(java.time.LocalDate.now(),0,0))\n        full(e);tap(\"Напомнить снова\");tap(\"+другое\")\n        ui.onAllNodesWithText(\"00\").onFirst().performTouchInput { click() }\n        Assert.assertEquals(EventState.FIRING,event(e)?.state)\n        closeAlarm()\n        text(\"Выберите будущее время!\")\n        Assert.assertEquals(EventState.FIRING,event(e)?.state)\n        val warning=ui.onNodeWithText(\"Выберите будущее время!\")\n        warning.performScrollTo()\n        val bounds=warning.fetchSemanticsNode().boundsInRoot\n        val pixels=ui.onRoot().captureToImage().toPixelMap()\n        var orange=0\n        for(y in bounds.top.toInt().coerceAtLeast(0) until bounds.bottom.toInt().coerceAtMost(pixels.height))\n            for(x in bounds.left.toInt().coerceAtLeast(0) until bounds.right.toInt().coerceAtMost(pixels.width)) {\n                val c=pixels[x,y]\n                if(c.red>.8f && c.green<.6f && c.blue<.15f) orange++\n            }\n        Assert.assertTrue(\"Past-time warning must be visibly orange, not semantics alone: $orange\",orange>500)\n        screenshotEvidence(\"custom-clock-past-warning\")\n    }",
+        "new": "    @Test fun customClockDigitsDoNotSaveAndCloseRejectsPastTime() {\n        val (_,e) = seed(due=FinalReminderService.localMillis(java.time.LocalDate.now(),0,0))\n        full(e);tap(\"Напомнить снова\");tap(\"+другое\")\n        ui.onAllNodesWithText(\"00\").onFirst().performTouchInput { click() }\n        Assert.assertEquals(EventState.ACKNOWLEDGED,event(e)?.state)\n        Assert.assertNotNull(event(e)?.acknowledgedAt)\n        Assert.assertFalse(FinalAlarmSignalPlayer.isActive(e))\n        closeAlarm()\n        text(\"Выберите будущее время!\")\n        Assert.assertEquals(EventState.ACKNOWLEDGED,event(e)?.state)\n        Assert.assertNotNull(event(e)?.acknowledgedAt)\n        Assert.assertFalse(FinalAlarmSignalPlayer.isActive(e))\n        val warning=ui.onNodeWithText(\"Выберите будущее время!\")\n        warning.performScrollTo()\n        val bounds=warning.fetchSemanticsNode().boundsInRoot\n        val pixels=ui.onRoot().captureToImage().toPixelMap()\n        var orange=0\n        for(y in bounds.top.toInt().coerceAtLeast(0) until bounds.bottom.toInt().coerceAtMost(pixels.height))\n            for(x in bounds.left.toInt().coerceAtLeast(0) until bounds.right.toInt().coerceAtMost(pixels.width)) {\n                val c=pixels[x,y]\n                if(c.red>.8f && c.green<.6f && c.blue<.15f) orange++\n            }\n        Assert.assertTrue(\"Past-time warning must be visibly orange, not semantics alone: $orange\",orange>500)\n        screenshotEvidence(\"custom-clock-past-warning\")\n    }",
+        "count": 1
+      },
+      {
+        "old": "    @Test fun lastCalendarOccurrenceOffersAgainButEarlierOccurrenceDoesNot() {\n        val (id,e) = seed()\n        val f = runBlocking { dao.insertEvent(ReminderEventEntity(reminderId=id,dueAt=System.currentTimeMillis()+86_400_000)) }\n        full(e)\n        text(\"Отложить\")\n        runBlocking { dao.updateEvent(dao.event(f)!!.copy(state=EventState.CANCELLED)) }\n        text(\"Напомнить снова\")\n        Assert.assertEquals(EventState.FIRING,event(e)?.state)\n    }",
+        "new": "    @Test fun lastCalendarOccurrenceOffersAgainButEarlierOccurrenceDoesNot() {\n        val (id,e) = seed()\n        val f = runBlocking { dao.insertEvent(ReminderEventEntity(reminderId=id,dueAt=System.currentTimeMillis()+86_400_000)) }\n        full(e)\n        text(\"Отложить\")\n        runBlocking { dao.updateEvent(dao.event(f)!!.copy(state=EventState.CANCELLED)) }\n        text(\"Напомнить снова\")\n        Assert.assertEquals(EventState.ACKNOWLEDGED,event(e)?.state)\n        Assert.assertNotNull(event(e)?.acknowledgedAt)\n        Assert.assertFalse(FinalAlarmSignalPlayer.isActive(e))\n    }",
+        "count": 1
+      },
+      {
+        "old": "    @Test fun actualAlarmManagerDeliveryCompactTapFullAndClose() {\n        main()\n        val id = runBlocking { service.createOneShot(\"Доставка будильника\", System.currentTimeMillis() + 3_000) }\n        val e = runBlocking { dao.eventsForReminder(id).single().id }\n        await(\"AlarmManager delivered\", 20_000) { event(e)?.state == EventState.FIRING }\n        await(\"automatic compact\", 15_000) { resumed(FinalCompactAlarmActivity::class.java) }\n        ui.onRoot().performTouchInput { click(center) }\n        text(\"Напомнить снова\")\n        Assert.assertEquals(EventState.FIRING, event(e)?.state)\n        closeAlarm()\n        await(\"one shot acknowledged and removed\") { event(e)?.state == EventState.ACKNOWLEDGED && reminder(id)?.state == ReminderState.DELETED }\n    }",
+        "new": "    @Test fun actualAlarmManagerDeliveryCompactTapFullAndClose() {\n        main()\n        val id = runBlocking { service.createOneShot(\"Доставка будильника\", System.currentTimeMillis() + 3_000) }\n        val e = runBlocking { dao.eventsForReminder(id).single().id }\n        await(\"AlarmManager delivered\", 20_000) { event(e)?.state == EventState.FIRING }\n        await(\"automatic compact\", 15_000) { resumed(FinalCompactAlarmActivity::class.java) }\n        ui.onRoot().performTouchInput { click(center) }\n        text(\"Напомнить снова\")\n        Assert.assertEquals(EventState.ACKNOWLEDGED, event(e)?.state)\n        Assert.assertFalse(FinalAlarmSignalPlayer.isActive(e))\n        closeAlarm()\n        await(\"one shot acknowledged and removed\") { event(e)?.state == EventState.ACKNOWLEDGED && reminder(id)?.state == ReminderState.DELETED }\n    }",
+        "count": 1
+      },
+      {
+        "old": "    @Test fun sevenStagesUsePersistedAnchorAndFinalCompletionMarksMissed() {\n        main()\n        val (_,e)=seed(state=EventState.SCHEDULED,due=System.currentTimeMillis()-100)\n        runBlocking { service.onAlarmSignal(e) }\n        for(stage in 1..6) {\n            // Controlled persisted clock fixture: no production interval is shortened.\n            val now=System.currentTimeMillis()\n            runBlocking {\n                val previous=dao.event(e)!!\n                dao.updateEvent(previous.copy(dueAt=now-FinalAlarmPolicy.offsetsMinutes[stage]*60_000,nextSignalAt=now-1))\n                service.onAlarmSignal(e)\n            }\n            Assert.assertEquals(stage,event(e)?.retryIndex)\n        }\n        await(\"last signal completes\",40_000) { event(e)?.state == EventState.MISSED }\n        await(\"unanswered chain closes alarm windows\") {\n            !resumed(FinalCompactAlarmActivity::class.java) && !resumed(FinalAlarmActivity::class.java)\n        }\n        Assert.assertFalse(FinalAlarmSignalPlayer.isActive(e))\n    }",
+        "new": "    @Test fun sevenStagesUsePersistedAnchorAndFinalCompletionMarksMissed() {\n        main()\n        val (_,e)=seed(state=EventState.SCHEDULED,due=System.currentTimeMillis()-100)\n        runBlocking { service.onAlarmSignal(e) }\n        Assert.assertEquals(listOf(0L,5L,15L,30L),FinalAlarmPolicy.offsetsMinutes)\n        for(stage in 1..3) {\n            // Controlled persisted clock fixture: no production interval is shortened.\n            val now=System.currentTimeMillis()\n            runBlocking {\n                val previous=dao.event(e)!!\n                dao.updateEvent(previous.copy(dueAt=now-FinalAlarmPolicy.offsetsMinutes[stage]*60_000,nextSignalAt=now-1))\n                service.onAlarmSignal(e)\n            }\n            Assert.assertEquals(stage,event(e)?.retryIndex)\n        }\n        await(\"last signal completes\",40_000) { event(e)?.state == EventState.MISSED }\n        await(\"unanswered chain closes alarm windows\") {\n            !resumed(FinalCompactAlarmActivity::class.java) && !resumed(FinalAlarmActivity::class.java)\n        }\n        Assert.assertFalse(FinalAlarmSignalPlayer.isActive(e))\n    }",
+        "count": 1
+      },
+      {
+        "old": "    @Test fun fullAlarmSidePaddingContinuesTheOriginalLowerColor() {\n        val (_,e)=seed();full(e)\n        // Compose semantics may be ready before SurfaceFlinger presents its first buffer.\n        // Poll actual pixels; persistent bands still fail the same strict colour contract.\n        await(\"full alarm framebuffer has original upper/lower padding\",5000) {\n            val bitmap=inst.uiAutomation.takeScreenshot()\n            try {\n                bitmap.getPixel(5,bitmap.height-30)==0xFFA3A38C.toInt() &&\n                    bitmap.getPixel(5,bitmap.height/4)==0xFF325157.toInt()\n            } finally { bitmap.recycle() }\n        }\n    }\n",
+        "new": "    @Test fun fullAlarmSidePaddingContinuesTheOriginalLowerColor() {\n        val (_,e)=seed();full(e)\n        // Compose semantics may be ready before SurfaceFlinger presents its first buffer.\n        // Poll actual pixels; persistent bands still fail the same strict colour contract.\n        await(\"full alarm framebuffer has original upper/lower padding\",5000) {\n            val bitmap=inst.uiAutomation.takeScreenshot()\n            try {\n                bitmap.getPixel(5,bitmap.height-30)==0xFFA3A38C.toInt() &&\n                    bitmap.getPixel(5,bitmap.height/4)==0xFF43595E.toInt()\n            } finally { bitmap.recycle() }\n        }\n    }\n",
+        "count": 1
+      }
+    ],
+    "patched_sha256": "b6178d44d1ed79b0f3c6322e750516239d3938aa6e9a1ce85ff6598af47359a8"
+  },
+  {
+    "path": "app/src/androidTest/java/com/nezabudka/testharness/FinalPhoneSecondBatchDeviceTest.kt",
+    "base_sha256": "e9ee09ea8f22b7115ae667045b4ac56592a1733eec77dfcd8594c4a90403ebaa",
+    "edits": [
+      {
+        "old": "    @Test fun selectedPastClockCannotBeSavedAndNewFutureSnoozeUpdatesStoredSchedule() {\n        val (id,e)=seed(due=System.currentTimeMillis())\n        full(e);tap(\"Напомнить снова\");tap(\"+другое\")\n        // Reproduce a same-hour past-minute edit (the original tests only used default 00:00).\n        val localNow=Instant.ofEpochMilli(event(e)!!.dueAt).atZone(ZoneId.systemDefault())\n        val s=ui.onRoot().fetchSemanticsNode().boundsInRoot.width/1080f\n        if(localNow.minute>0) {\n            val b=ui.onAllNodesWithText(\"%02d\".format(localNow.minute)).onLast().fetchSemanticsNode().boundsInRoot\n            ui.onRoot().performTouchInput { click(Offset(b.center.x-122*s,b.center.y)) }\n        } else if(localNow.hour>0) {\n            val b=ui.onAllNodesWithText(\"%02d\".format(localNow.hour)).onFirst().fetchSemanticsNode().boundsInRoot\n            ui.onRoot().performTouchInput { click(Offset(b.center.x-122*s,b.center.y)) }\n        }\n        closeAlarm();text(\"Выберите будущее время!\")\n        Assert.assertEquals(EventState.FIRING,event(e)?.state)\n        val due=System.currentTimeMillis()+10*60_000\n        runBlocking { FinalSnoozeRuntime(app).snoozeAt(e,due) }\n        val local=Instant.ofEpochMilli(due).atZone(ZoneId.systemDefault())\n        val slot=runBlocking { dao.scheduleSlots(id).single() }\n        Assert.assertEquals(local.hour*60+local.minute,slot.minuteOfDay)\n        Assert.assertEquals(local.toLocalDate().toEpochDay(),slot.epochDay)\n        Assert.assertEquals(FinalAlarmRecoveryPolicy.logicalSlot(due),event(e)?.logicalSlot)\n        Assert.assertEquals(EventState.SCHEDULED,event(e)?.state)\n    }",
+        "new": "    @Test fun selectedPastClockCannotBeSavedAndNewFutureSnoozeUpdatesStoredSchedule() {\n        val (id,e)=seed(due=System.currentTimeMillis())\n        full(e);tap(\"Напомнить снова\");tap(\"+другое\")\n        // Reproduce a same-hour past-minute edit (the original tests only used default 00:00).\n        val localNow=Instant.ofEpochMilli(event(e)!!.dueAt).atZone(ZoneId.systemDefault())\n        val s=ui.onRoot().fetchSemanticsNode().boundsInRoot.width/1080f\n        if(localNow.minute>0) {\n            val b=ui.onAllNodesWithText(\"%02d\".format(localNow.minute)).onLast().fetchSemanticsNode().boundsInRoot\n            ui.onRoot().performTouchInput { click(Offset(b.center.x-122*s,b.center.y)) }\n        } else if(localNow.hour>0) {\n            val b=ui.onAllNodesWithText(\"%02d\".format(localNow.hour)).onFirst().fetchSemanticsNode().boundsInRoot\n            ui.onRoot().performTouchInput { click(Offset(b.center.x-122*s,b.center.y)) }\n        }\n        closeAlarm();text(\"Выберите будущее время!\")\n        Assert.assertEquals(EventState.ACKNOWLEDGED,event(e)?.state)\n        Assert.assertNotNull(event(e)?.acknowledgedAt)\n        Assert.assertFalse(FinalAlarmSignalPlayer.isActive(e))\n        val due=System.currentTimeMillis()+10*60_000\n        runBlocking { FinalSnoozeRuntime(app).snoozeAt(e,due) }\n        val local=Instant.ofEpochMilli(due).atZone(ZoneId.systemDefault())\n        val slot=runBlocking { dao.scheduleSlots(id).single() }\n        Assert.assertEquals(local.hour*60+local.minute,slot.minuteOfDay)\n        Assert.assertEquals(local.toLocalDate().toEpochDay(),slot.epochDay)\n        Assert.assertEquals(FinalAlarmRecoveryPolicy.logicalSlot(due),event(e)?.logicalSlot)\n        Assert.assertEquals(EventState.SCHEDULED,event(e)?.state)\n    }",
+        "count": 1
+      },
+      {
+        "old": "FinalSnoozeRuntime(app).snoozeAt(e,due)",
+        "new": "FinalSnoozeRuntime(app, allowAcknowledgedView = true).snoozeAt(e,due)",
+        "count": 1
+      },
+      {
+        "old": "        tap(\"%02d.%02d.%04d  14:17\".format(day.dayOfMonth,day.monthValue,day.year))",
+        "new": "        text(\"%02d.%02d.%04d\".format(day.dayOfMonth,day.monthValue,day.year))\n        text(\"14:17\")\n        tap(\"Когда напомнить?\")",
+        "count": 1
+      }
+    ],
+    "patched_sha256": "80dc077e121dd1bb6032388d9054013a0defaa007454801df5ac704ad3c43ed3"
+  },
+  {
+    "path": "app/src/androidTest/java/com/nezabudka/testharness/FinalVoiceDeviceTest.kt",
+    "base_sha256": "5f4b994e841efaa6916fedc71e60e7588568a597b78d5eae627d25125db17936",
+    "edits": [
+      {
+        "old": "    @Test fun leavingFullAlarmStopsRealVoiceCloseMicrophoneWithoutAcknowledging() {\n        val (_,e)=seed()\n        full(e)\n        await(\"alarm Voice Close listens\",20_000) { recording() }\n        device.pressHome();mainStillResponsive()\n        await(\"alarm microphone released\",15_000) { !recording() }\n        Assert.assertEquals(EventState.FIRING,event(e)?.state)\n    }",
+        "new": "    @Test fun leavingFullAlarmStopsRealVoiceCloseMicrophoneWithoutAcknowledging() {\n        val (_,e)=seed()\n        full(e)\n        await(\"alarm Voice Close listens\",20_000) { recording() }\n        device.pressHome();mainStillResponsive()\n        await(\"alarm microphone released\",15_000) { !recording() }\n        Assert.assertEquals(EventState.ACKNOWLEDGED,event(e)?.state)\n        Assert.assertNotNull(event(e)?.acknowledgedAt)\n        Assert.assertFalse(FinalAlarmSignalPlayer.isActive(e))\n    }",
+        "count": 1
+      }
+    ],
+    "patched_sha256": "66fe7c1e0c8897428ae8ac049f2bf8d0605a80c2ff083740fa725c98d8de7c83"
+  },
+  {
+    "path": "app/src/androidTest/java/com/nezabudka/testharness/FinalEditorDeviceTest.kt",
+    "base_sha256": "a6cb55e6e772c7c65dfa11f00fec49996ce6594b0887736a1a5131429e0d741d",
+    "edits": [
+      {
+        "old": "        tap(\"%02d.%02d.%04d  14:17\".format(date.dayOfMonth,date.monthValue,date.year))",
+        "new": "        text(\"%02d.%02d.%04d\".format(date.dayOfMonth,date.monthValue,date.year))\n        text(\"14:17\")\n        tap(\"Когда напомнить?\")",
+        "count": 2
+      },
+      {
+        "old": "    @Test fun repeatWhatArrowOpensTextEditorAndReturnsToSameReminder() {\n        futureDaily()\n        main();tap(\"Ежедневная проверка\");tap(\"Ежедневно\")\n        tap(\"Ежедневная проверка\")\n        ui.onNode(hasSetTextAction()).assertTextEquals(\"Ежедневная проверка\")\n        device.pressBack();device.pressBack()\n        text(\"Повторять напоминание?\")\n    }",
+        "new": "    @Test fun repeatWhatArrowOpensTextEditorAndReturnsToSameReminder() {\n        futureDaily()\n        main();tap(\"Ежедневная проверка\");tap(\"Ежедневно\")\n        tap(\"Ежедневная проверка\")\n        ui.onNode(hasSetTextAction()).assertTextEquals(\"Ежедневная проверка\")\n        device.pressBack();device.pressBack()\n        text(\"Текущие напоминания\")\n        text(\"Ежедневная проверка\")\n    }",
+        "count": 1
+      },
+      {
+        "old": "        val b=ui.onNodeWithText(label).fetchSemanticsNode().boundsInRoot\n        // The text is merged into the parent card; switch owns a separate touch target.\n        val scale=b.width/1000f\n        ui.onRoot().performTouchInput { click(Offset(b.left+725*scale,b.top+99*scale)) }",
+        "new": "        Alpha3TestSupport.toggleForLabel(ui,label)",
+        "count": 1
+      }
+    ],
+    "patched_sha256": "a15fae84e8df9a8e588df1563f0d710024caa71a0f2483a567aa17d255c1e208"
+  },
+  {
+    "path": "app/src/androidTest/java/com/nezabudka/testharness/FinalFeedbackBatchDeviceTest.kt",
+    "base_sha256": "0f072be4ca42ce21f4d8f7043058feda7fa1c076b00768b33b6ca9c31bc27bf5",
+    "edits": [
+      {
+        "old": "        tap(\"%02d.%02d.%04d  14:17\".format(day.dayOfMonth,day.monthValue,day.year))",
+        "new": "        text(\"%02d.%02d.%04d\".format(day.dayOfMonth,day.monthValue,day.year))\n        text(\"14:17\")\n        tap(\"Когда напомнить?\")",
+        "count": 1
+      },
+      {
+        "old": "    @Test fun reactivatingDeferredPastOneShotShowsTimePassedWithoutAReplay() {\n        val (id,eventId)=seed(\"Просрочено при отложении\",state=EventState.SCHEDULED,due=System.currentTimeMillis()-60_000)\n        runBlocking { service.setEnabled(id,false);service.setEnabled(id,true) }\n        Assert.assertEquals(EventState.CANCELLED,event(eventId)?.state)\n        Assert.assertFalse(FinalAlarmSignalPlayer.isActive(eventId))\n        main();text(\"Время прошло\")\n        text(\"Просрочено при отложении\")\n    }\n",
+        "new": "    @Test fun reactivatingDeferredPastOneShotShowsTimePassedWithoutAReplay() {\n        val (id,eventId)=seed(\"Просрочено при отложении\",state=EventState.SCHEDULED,due=System.currentTimeMillis()-60_000)\n        runBlocking { service.setEnabled(id,false);service.setEnabled(id,true) }\n        Assert.assertEquals(EventState.DEFERRED_ELAPSED,event(eventId)?.state)\n        Assert.assertFalse(FinalAlarmSignalPlayer.isActive(eventId))\n        main();text(\"Время прошло\")\n        text(\"Просрочено при отложении\")\n    }\n",
+        "count": 1
+      }
+    ],
+    "patched_sha256": "c43a9eb6abf0d1e195c1a27010bdc868ffeb45955d2d0a17d79e3f7542818eda"
+  },
+  {
+    "path": "app/src/androidTest/java/com/nezabudka/testharness/FinalFourthPhoneFeedbackDeviceTest.kt",
+    "base_sha256": "5ecd2bba5d3c69025980f86c90a8ad761048755a430fc639c42b4d78a53ce6f5",
+    "edits": [
+      {
+        "old": "    @Test fun retainedSelectedToneCanBePlayedFromPrivateStorage() {\n        val uri=FinalSelectedMelody.retain(app,Uri.parse(\"content://com.nezabudka.testfixture.slowmedia/slow-tone\"))\n        assertNotNull(uri);assertEquals(\"file\",uri!!.scheme)\n        val file=File(uri.path!!);assertTrue(file.length()>44)\n        app.getSharedPreferences(\"nezabudka_final_prefs\",0).edit().putString(FinalAlarmSignalSettings.MELODY_URI_KEY,uri.toString()).commit()\n        val (_,event)=seed()\n        shell(\"logcat -c\")\n        try {\n            FinalAlarmSignalPlayer.play(app,event,\"Проверка выбранной мелодии\",100)\n            await(\"retained custom melody started\",20_000) {\n                shell(\"logcat -d -s FinalAlarmAudio:I\").contains(\"Melody started event=$event\")\n            }\n        } finally { FinalAlarmSignalPlayer.stop(event);file.delete() }\n    }",
+        "new": "    @Test fun retainedSelectedToneCanBePlayedFromPrivateStorage() {\n        val uri=FinalSelectedMelody.retain(app,Uri.parse(\"content://com.nezabudka.testfixture.slowmedia/slow-tone\"))\n        assertNotNull(uri);assertEquals(\"file\",uri!!.scheme)\n        val file=File(uri.path!!);assertTrue(file.length()>44)\n        app.getSharedPreferences(\"nezabudka_final_prefs\",0).edit().putString(FinalAlarmSignalSettings.MELODY_URI_KEY,uri.toString()).commit()\n        main()\n        val event=runBlocking {\n            val id=service.createOneShot(\"Проверка выбранной мелодии\",System.currentTimeMillis()+3_000)\n            dao.eventsForReminder(id).single().id\n        }\n        shell(\"logcat -c\")\n        try {\n            await(\"Actual AlarmManager / foreground service delivery\",20_000) {runBlocking {dao.event(event)?.state==EventState.FIRING}}\n            await(\"retained custom melody started\",20_000) {\n                shell(\"logcat -d -s FinalAlarmAudio:I\").contains(\"Melody started event=$event\")\n            }\n        } finally { FinalAlarmSignalPlayer.stop(event);file.delete() }\n    }",
+        "count": 1
+      },
+      {
+        "old": "        shell(\"logcat -c\")",
+        "new": "        // Keep the continuous device log intact. Filter audio records by the unique event id.",
+        "count": 1
+      }
+    ],
+    "patched_sha256": "975e8256f2d59cf445c0ff0039f5bd85cafed9f0eaceb922e11567f2fd1ba7a4"
+  },
+  {
+    "path": "app/src/androidTest/java/com/nezabudka/testharness/FinalThirdPhoneFeedbackDeviceTest.kt",
+    "base_sha256": "e7c7983ec0c196f455b4303fe20294e6ae0b9076fda258e2457daa77493a631a",
+    "edits": [
+      {
+        "old": "    @Test fun slowCustomMelodyActuallyStartsBeforeTheSpeechDelayBegins() {\n        shell(\"logcat -c\")\n        val prefs=app.getSharedPreferences(\"nezabudka_final_prefs\",0)\n        prefs.edit().putString(\"settings_melody_uri\",\"content://com.nezabudka.testfixture.slowmedia/slow-tone\").putInt(\"settings_global_volume\",80).commit()\n        val (_,event)=seed()\n        try {\n            FinalAlarmSignalPlayer.play(app,event,\"Проверка задержанной мелодии\",null)\n            var cue:Double?=null;var speech:Double?=null\n            await(\"actual prepared melody\",20_000) {\n                val lines=shell(\"logcat -d -v epoch -s FinalAlarmAudio:I\").lineSequence().toList()\n                cue=lines.firstOrNull { it.contains(\"Melody started event=$event\") }?.trim()?.substringBefore(' ')?.toDoubleOrNull()\n                speech=lines.firstOrNull { it.contains(\"Speech starting after melody event=$event\") }?.trim()?.substringBefore(' ')?.toDoubleOrNull()\n                cue!=null && speech!=null\n            }\n            Assert.assertTrue(\"Custom cue gets its doubled six seconds after the slow provider opens\",speech!!-cue!!>=5.7)\n        } finally { FinalAlarmSignalPlayer.stop(event) }\n    }",
+        "new": "    @Test fun slowCustomMelodyActuallyStartsBeforeTheSpeechDelayBegins() {\n        shell(\"logcat -c\")\n        val prefs=app.getSharedPreferences(\"nezabudka_final_prefs\",0)\n        prefs.edit().putString(\"settings_melody_uri\",\"content://com.nezabudka.testfixture.slowmedia/slow-tone\").putInt(\"settings_global_volume\",80).commit()\n        main()\n        val event=runBlocking {\n            val id=service.createOneShot(\"Проверка задержанной мелодии\",System.currentTimeMillis()+3_000)\n            dao.eventsForReminder(id).single().id\n        }\n        try {\n            await(\"Actual AlarmManager / foreground service delivery\",20_000) {runBlocking {dao.event(event)?.state==EventState.FIRING}}\n            var cue:Double?=null;var speech:Double?=null\n            await(\"actual prepared melody\",20_000) {\n                val lines=shell(\"logcat -d -v epoch -s FinalAlarmAudio:I\").lineSequence().toList()\n                cue=lines.firstOrNull { it.contains(\"Melody started event=$event\") }?.trim()?.substringBefore(' ')?.toDoubleOrNull()\n                speech=lines.firstOrNull { it.contains(\"Speech starting after melody event=$event\") }?.trim()?.substringBefore(' ')?.toDoubleOrNull()\n                cue!=null && speech!=null\n            }\n            Assert.assertTrue(\"Custom cue gets its doubled six seconds after the slow provider opens\",speech!!-cue!!>=5.7)\n        } finally { FinalAlarmSignalPlayer.stop(event) }\n    }",
+        "count": 1
+      },
+      {
+        "old": "        shell(\"logcat -c\")",
+        "new": "        // Keep the continuous device log intact. Filter audio records by the unique event id.",
+        "count": 1
+      }
+    ],
+    "patched_sha256": "e071640ffbb3381e1327c2c5dfa22e0fd16489d0d2422b556f834bc5c457735d"
+  },
+  {
+    "path": "app/src/androidTest/java/com/nezabudka/testharness/FinalMediaAndSettingsDeviceTest.kt",
+    "base_sha256": "2bf0c7935e2fd4454b797bca211fcd0c481d0e1176978b503cc6584424473fef",
+    "edits": [
+      {
+        "old": "        for(c in listOf(0xFF008CA1.toInt()",
+        "new": "        val alpha3Icon=File(app.getExternalFilesDir(null),\"device-evidence\").apply {check(isDirectory || mkdirs())}\n        File(alpha3Icon,\"launcher-icon-before-assert.png\").outputStream().use { check(pixels.compress(Bitmap.CompressFormat.PNG,100,it)) }\n        File(alpha3Icon,\"launcher-icon-colours.json\").writeText(org.json.JSONObject(counts.mapKeys {it.key.toUInt().toString(16)}).toString(2))\n        for(c in listOf(0xFF008CA1.toInt()",
+        "count": 1
+      }
+    ],
+    "patched_sha256": "36e92045926ef464ab854c9aecc5acec7fd8722ee77d841a30a150834223b024"
+  }
+]
