@@ -62,14 +62,26 @@ internal object Alpha3TestSupport {
         val card=checkNotNull(coordinates) {"No measured card around $label"}
         val origin=card.localToRoot(Offset.Zero)
         val candidates=ui.onAllNodes(hasClickAction(),useUnmergedTree=true).fetchSemanticsNodes().filter {
-            val b=it.boundsInRoot
-            b.left>=origin.x+600*scale && b.right<=origin.x+840*scale &&
-                b.top>=origin.y-1 && b.bottom<=origin.y+card.size.height+1 && b.height>150*scale
+            val c=it.layoutInfo.coordinates
+            val o=c.localToRoot(Offset.Zero)
+            kotlin.math.abs(o.x-(origin.x+610*scale))<3 && kotlin.math.abs(o.y-origin.y)<3 &&
+                kotlin.math.abs(c.size.width-225*scale)<3 && kotlin.math.abs(c.size.height-card.size.height)<3
         }
         check(candidates.size==1) {"Expected one measured switch for $label, found ${candidates.size}"}
         val target=candidates.single()
         ui.onNode(SemanticsMatcher("measured switch for $label") {it.id==target.id},useUnmergedTree=true)
-            .performTouchInput {click()}
+            .performScrollTo().assertIsDisplayed().performTouchInput {click()}
+    }
+
+    fun cardBounds(ui: ComposeTestRule,label: String): androidx.compose.ui.geometry.Rect {
+        val text=ui.onNodeWithText(label,useUnmergedTree=true).fetchSemanticsNode()
+        val scale=ui.onRoot().fetchSemanticsNode().boundsInRoot.width/1080f
+        var c: LayoutCoordinates?=text.layoutInfo.coordinates
+        while(c!=null && !(kotlin.math.abs(c.size.width-1000*scale)<3 &&
+                kotlin.math.abs(c.size.height-FinalCorelVisualTokens.ListCardH*scale)<3)) c=c.parentLayoutCoordinates
+        val card=checkNotNull(c) {"No measured outer card for $label"}
+        val origin=card.localToRoot(Offset.Zero)
+        return androidx.compose.ui.geometry.Rect(origin.x,origin.y,origin.x+card.size.width,origin.y+card.size.height)
     }
 
     fun tapRepeatMode(ui: ComposeTestRule,label:String) {

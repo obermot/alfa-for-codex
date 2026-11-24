@@ -45,3 +45,11 @@ General logcat starts while the emulator is alive; the test overlay removes both
 The workflow supports manual dispatch and a narrowly scoped push trigger: only a change to `alpha3/launch.json` on branch `alpha-3`. Preparing or reporting commits do not trigger new runs. A launch marker identifies the reviewed preparation commit; the actual infrastructure commit is recorded from `GITHUB_SHA` in every job. Never push a marker while an earlier authorized run is still active.
 
 No successful test result or Kotlin compilation is claimed before CI produces it. Compilation gate failure prevents spending emulator time on uncompilable tests; the preflight artifact preserves the precise compiler messages. New work must continue from those messages and this branch, without modifying application functionality.
+
+## Follow-up after run 45304531993
+
+The complete 809 baseline scenarios executed: unit 731/731 passed; Android 63/78 passed. No scenarios missing. Approved Russian PDF87 references: 297 actual images, zero differing pixels. Ukrainian candidates are evidence, not approved replacements.
+
+The Android follow-up uses scope `android` and reuses this unchanged successful unit result. Preflight still compiles both suites and verifies protected application files. AGP is explicitly instructed to retain installed APKs after connected tests so screenshots survive and direct instrumentation can execute. Every adb shell disables stdin; profile input uses FD3, preventing adb from consuming the remaining profile rows. Manual instrumentation also receives DEVNULL.
+
+Remaining baseline failures are not declared app defects without collected evidence. Corrected additional test geometry uses measured unclipped switch/card coordinates and physical clicks on the actual hour arrow; original persistence, identity and dimensions assertions remain.

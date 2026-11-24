@@ -4,11 +4,11 @@ from pathlib import Path
 import argparse,subprocess,time,xml.etree.ElementTree as E,html,json
 p=argparse.ArgumentParser();p.add_argument('--profile',required=True);p.add_argument('--tests',required=True);p.add_argument('--expected',type=int,required=True);a=p.parse_args()
 directory=Path('alpha3-evidence')/a.profile;directory.mkdir(parents=True,exist_ok=True)
-command=['adb','shell','am','instrument','-w','-r','-e','class',a.tests,'-e','alpha3Profile',a.profile,
+command=['adb','shell','-n','am','instrument','-w','-r','-e','class',a.tests,'-e','alpha3Profile',a.profile,
          'com.nezabudka.preview.test/androidx.test.runner.AndroidJUnitRunner']
 start=time.monotonic()
 try:
- r=subprocess.run(command,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=600);output=r.stdout;rc=r.returncode
+ r=subprocess.run(command,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=600);output=r.stdout;rc=r.returncode
 except subprocess.TimeoutExpired as e:
  output=(e.stdout or b'').decode(errors='replace') if isinstance(e.stdout,bytes) else e.stdout or '';output+='\nHOST TIMEOUT';rc=124
 (directory/'instrumentation.txt').write_text(output)

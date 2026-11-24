@@ -24,6 +24,8 @@ jobs:
     name: Verify overlay and compile both Kotlin test suites
     runs-on: ubuntu-latest
     timeout-minutes: 35
+    outputs:
+      run_units: ${{ steps.scope.outputs.run_units }}
     steps:
       - name: Checkout test infrastructure
         uses: actions/checkout@v4
@@ -49,6 +51,16 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.13'
+      - name: Select explicitly requested campaign scope
+        id: scope
+        run: |
+          python3 - <<'PYTHON'
+          import json, os
+          scope=json.load(open('../infra/alpha3/launch.json')).get('scope','full')
+          assert scope in ('full','android'), scope
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+              output.write('run_units='+str(scope=='full').lower()+'\n')
+          PYTHON
       - name: Verify exact patch contexts and apply test-only overlay
         id: prepare
         run: |
@@ -84,6 +96,7 @@ jobs:
           if-no-files-found: error
 
   unit-tests:
+    if: ${{ needs.preflight.outputs.run_units == 'true' }}
     name: All 731 unit scenarios and PDF87 evidence
     needs: preflight
     runs-on: ubuntu-latest
