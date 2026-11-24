@@ -1,5 +1,5 @@
 
-name: Nezabudka Android Tests
+name: Nezabudka Alpha 3
 
 on:
   workflow_dispatch:
@@ -100,7 +100,22 @@ jobs:
           profile: pixel_6
           disable-animations: true
           emulator-boot-timeout: 600
-          script: gradle :app:connectedDebugAndroidTest --stacktrace
+          script: |
+            mkdir -p alpha3-evidence
+            adb logcat -b all -v threadtime > alpha3-evidence/android-logcat.txt 2>&1 &
+            LOG_PID=$!
+            set +e
+            gradle :app:connectedDebugAndroidTest --stacktrace
+            RESULT=$?
+            adb shell wm size > alpha3-evidence/display.txt
+            adb shell wm density >> alpha3-evidence/display.txt
+            adb shell getprop > alpha3-evidence/device-properties.txt
+            adb pull /sdcard/Android/data/com.nezabudka.preview/files/device-evidence alpha3-evidence/device-evidence || true
+            adb pull /sdcard/Android/data/com.nezabudka.preview.test/files/device-evidence alpha3-evidence/test-device-evidence || true
+            kill "$LOG_PID" || true
+            find app/build/outputs/apk -name '*.apk' -exec sha256sum {} + > alpha3-evidence/apk-sha256.txt
+            git rev-parse HEAD > alpha3-evidence/source-commit.txt
+            exit "$RESULT"
 
       - name: Save emulator test reports
         if: always()
@@ -111,24 +126,8 @@ jobs:
             app/build/reports/androidTests/
             app/build/outputs/androidTest-results/
             app/build/outputs/connected_android_test_additional_output/
+            app/build/outputs/apk/
+            alpha3-evidence/
           retention-days: 30
           if-no-files-found: warn
 
-      - name: Save Android logs
-        if: ${{ !cancelled() }}
-        timeout-minutes: 1
-        run: |
-          if timeout 10s adb get-state 2>/dev/null | grep -qx device; then
-            timeout 20s adb logcat -d -t 10000 > android-logcat.txt 2>&1 || true
-          else
-            echo "No running Android emulator; logcat skipped." > android-logcat.txt
-          fi
-
-      - name: Upload Android logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: nezabudka-android-logs
-          path: android-logcat.txt
-          retention-days: 30
-          if-no-files-found: warn
