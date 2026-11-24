@@ -1,0 +1,5 @@
+{
+  "run": 45310893223,
+  "artifact_id": 14884236112,
+  "reason": "Verify saved evidence after local executor disconnect; no rebuild or test rerun"
+}
