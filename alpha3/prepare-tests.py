@@ -19,7 +19,7 @@ def main():
         assert git(root,'rev-parse','HEAD')==PIN,'Unexpected application commit'
         assert not git(root,'status','--porcelain'),'Application checkout must be clean before overlay'
     baseline=json.loads((HERE/'expected-tests.json').read_text())
-    assert len(baseline['unit'])==731 and len(baseline['android'])==78
+    assert len(baseline['unit'])==734 and len(baseline['android'])==78
     before=protected(root) if not args.fixture else {}
     updates={};diffs=[]
     for entry in json.loads((HERE/'test-edits.json').read_text()):
@@ -55,5 +55,5 @@ def main():
     evidence=root/'alpha3-evidence';evidence.mkdir(exist_ok=True)
     (evidence/'overlay-manifest.json').write_text(json.dumps(report,indent=2)+'\n')
     (evidence/'test-overlay.patch').write_text(''.join(diffs))
-    print(f'Applied {len(updates)} test files; all 809 original scenario identities retained; functional source unchanged.')
+    print(f'Applied {len(updates)} test files; all 809 original scenario identities plus 3 necessary feature checks retained; functional source unchanged.')
 if __name__=='__main__':main()

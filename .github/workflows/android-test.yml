@@ -97,7 +97,7 @@ jobs:
 
   unit-tests:
     if: ${{ needs.preflight.outputs.run_units == 'true' }}
-    name: All 731 unit scenarios and PDF87 evidence
+    name: All 734 unit scenarios and PDF87 evidence
     needs: preflight
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -163,6 +163,26 @@ jobs:
           gradle :app:testDebugUnitTest --tests '*FinalPdf87GoldenTest' -PpdfVisualMode=record --stacktrace \
             2>&1 | tee alpha3-evidence/pdf87-candidate-uk-gradle.txt
           cp -a app/build/test-results alpha3-evidence/pdf87-candidate-uk-results
+      - name: Record night-theme ru evidence with the existing PDF87 scenarios
+        if: ${{ always() && steps.prepare.outcome == 'success' }}
+        env:
+          NEZ_UI_ruUAGE: ru
+          NEZ_UI_THEME: dark
+          NEZ_PDF87_CAPTURE_DIR: ${{ github.workspace }}/source/app/build/alpha3-evidence/pdf87-night-ru
+        run: |
+          gradle :app:testDebugUnitTest --tests '*FinalPdf87GoldenTest' -PpdfVisualMode=record -PpdfGoldenDir="$PWD/app/src/test/snapshots/pdf87-night" --stacktrace \
+            2>&1 | tee alpha3-evidence/pdf87-night-ru-gradle.txt
+          cp -a app/build/test-results alpha3-evidence/pdf87-night-ru-results
+      - name: Record night-theme uk evidence with the existing PDF87 scenarios
+        if: ${{ always() && steps.prepare.outcome == 'success' }}
+        env:
+          NEZ_UI_ukUAGE: uk
+          NEZ_UI_THEME: dark
+          NEZ_PDF87_CAPTURE_DIR: ${{ github.workspace }}/source/app/build/alpha3-evidence/pdf87-night-uk
+        run: |
+          gradle :app:testDebugUnitTest --tests '*FinalPdf87GoldenTest' -PpdfVisualMode=record -PpdfGoldenDir="$PWD/app/src/test/snapshots/pdf87-night" --stacktrace \
+            2>&1 | tee alpha3-evidence/pdf87-night-uk-gradle.txt
+          cp -a app/build/test-results alpha3-evidence/pdf87-night-uk-results
       - name: Generate actual/reference comparisons and verify protected files
         if: ${{ always() && steps.prepare.outcome == 'success' }}
         run: |
@@ -183,6 +203,7 @@ jobs:
             source/app/build/alpha3-evidence/
             source/app/build/alpha3-scale-evidence/
             source/app/src/test/snapshots/pdf87/
+            source/app/src/test/snapshots/pdf87-night/
           retention-days: 30
           if-no-files-found: error
 

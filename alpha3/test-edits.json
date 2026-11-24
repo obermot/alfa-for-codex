@@ -114,7 +114,7 @@
   },
   {
     "path": "app/src/androidTest/java/com/nezabudka/testharness/FinalPhoneSecondBatchDeviceTest.kt",
-    "base_sha256": "e9ee09ea8f22b7115ae667045b4ac56592a1733eec77dfcd8594c4a90403ebaa",
+    "base_sha256": "8ce26b0c35c59c23a4b3268b59a2aeabae00e298a8bfefee8d51a45ec46a18bc",
     "edits": [
       {
         "old": "    @Test fun selectedPastClockCannotBeSavedAndNewFutureSnoozeUpdatesStoredSchedule() {\n        val (id,e)=seed(due=System.currentTimeMillis())\n        full(e);tap(\"Напомнить снова\");tap(\"+другое\")\n        // Reproduce a same-hour past-minute edit (the original tests only used default 00:00).\n        val localNow=Instant.ofEpochMilli(event(e)!!.dueAt).atZone(ZoneId.systemDefault())\n        val s=ui.onRoot().fetchSemanticsNode().boundsInRoot.width/1080f\n        if(localNow.minute>0) {\n            val b=ui.onAllNodesWithText(\"%02d\".format(localNow.minute)).onLast().fetchSemanticsNode().boundsInRoot\n            ui.onRoot().performTouchInput { click(Offset(b.center.x-122*s,b.center.y)) }\n        } else if(localNow.hour>0) {\n            val b=ui.onAllNodesWithText(\"%02d\".format(localNow.hour)).onFirst().fetchSemanticsNode().boundsInRoot\n            ui.onRoot().performTouchInput { click(Offset(b.center.x-122*s,b.center.y)) }\n        }\n        closeAlarm();text(\"Выберите будущее время!\")\n        Assert.assertEquals(EventState.FIRING,event(e)?.state)\n        val due=System.currentTimeMillis()+10*60_000\n        runBlocking { FinalSnoozeRuntime(app).snoozeAt(e,due) }\n        val local=Instant.ofEpochMilli(due).atZone(ZoneId.systemDefault())\n        val slot=runBlocking { dao.scheduleSlots(id).single() }\n        Assert.assertEquals(local.hour*60+local.minute,slot.minuteOfDay)\n        Assert.assertEquals(local.toLocalDate().toEpochDay(),slot.epochDay)\n        Assert.assertEquals(FinalAlarmRecoveryPolicy.logicalSlot(due),event(e)?.logicalSlot)\n        Assert.assertEquals(EventState.SCHEDULED,event(e)?.state)\n    }",
@@ -142,7 +142,7 @@
         "count": 1
       }
     ],
-    "patched_sha256": "6e715c66deb8445ec7b8774b6f1f0bf154ec0bdce16b892117d8e83a218112cb"
+    "patched_sha256": "b26390170fadaaaf3262ce29306bd932b874981638db29a803e3a3445256a913"
   },
   {
     "path": "app/src/androidTest/java/com/nezabudka/testharness/FinalVoiceDeviceTest.kt",
@@ -195,7 +195,7 @@
   },
   {
     "path": "app/src/androidTest/java/com/nezabudka/testharness/FinalFeedbackBatchDeviceTest.kt",
-    "base_sha256": "0f072be4ca42ce21f4d8f7043058feda7fa1c076b00768b33b6ca9c31bc27bf5",
+    "base_sha256": "c6d5d013587be547512a7cc8c31bb49692c9d1506bbcd77d4271fdf51aeac8da",
     "edits": [
       {
         "old": "        tap(\"%02d.%02d.%04d  14:17\".format(day.dayOfMonth,day.monthValue,day.year))",
@@ -213,11 +213,11 @@
         "count": 1
       }
     ],
-    "patched_sha256": "5bcead437dd1c40b5d7f9eb13b8c19bb78079b0b93b4c801ba77efdc12e5aa2b"
+    "patched_sha256": "28df857a48072caefe371c683d6fa065e48c7780b854aa901eff6df0cdb875fb"
   },
   {
     "path": "app/src/androidTest/java/com/nezabudka/testharness/FinalFourthPhoneFeedbackDeviceTest.kt",
-    "base_sha256": "5ecd2bba5d3c69025980f86c90a8ad761048755a430fc639c42b4d78a53ce6f5",
+    "base_sha256": "4fb4ac52c20adf4653941711736e7b81950bf2e6e8131cc462c7dddc9b7b3230",
     "edits": [
       {
         "old": "    @Test fun retainedSelectedToneCanBePlayedFromPrivateStorage() {\n        val uri=FinalSelectedMelody.retain(app,Uri.parse(\"content://com.nezabudka.testfixture.slowmedia/slow-tone\"))\n        assertNotNull(uri);assertEquals(\"file\",uri!!.scheme)\n        val file=File(uri.path!!);assertTrue(file.length()>44)\n        app.getSharedPreferences(\"nezabudka_final_prefs\",0).edit().putString(FinalAlarmSignalSettings.MELODY_URI_KEY,uri.toString()).commit()\n        val (_,event)=seed()\n        shell(\"logcat -c\")\n        try {\n            FinalAlarmSignalPlayer.play(app,event,\"Проверка выбранной мелодии\",100)\n            await(\"retained custom melody started\",20_000) {\n                shell(\"logcat -d -s FinalAlarmAudio:I\").contains(\"Melody started event=$event\")\n            }\n        } finally { FinalAlarmSignalPlayer.stop(event);file.delete() }\n    }",
@@ -240,15 +240,15 @@
         "count": 1
       }
     ],
-    "patched_sha256": "81ff2b4c5bb5d8982970ccbb5d3c39847f002da451b24e22c1c64fef5879b896"
+    "patched_sha256": "75a7deba5874d2055df7401e72d8d2233450f3abd329ee8c6174182ac3fd91d5"
   },
   {
     "path": "app/src/androidTest/java/com/nezabudka/testharness/FinalThirdPhoneFeedbackDeviceTest.kt",
-    "base_sha256": "e7c7983ec0c196f455b4303fe20294e6ae0b9076fda258e2457daa77493a631a",
+    "base_sha256": "72808272a3af04ab75299896935e793ee7853fba9a1a6927246ff24c9a7ec536",
     "edits": [
       {
-        "old": "    @Test fun slowCustomMelodyActuallyStartsBeforeTheSpeechDelayBegins() {\n        shell(\"logcat -c\")\n        val prefs=app.getSharedPreferences(\"nezabudka_final_prefs\",0)\n        prefs.edit().putString(\"settings_melody_uri\",\"content://com.nezabudka.testfixture.slowmedia/slow-tone\").putInt(\"settings_global_volume\",80).commit()\n        val (_,event)=seed()\n        try {\n            FinalAlarmSignalPlayer.play(app,event,\"Проверка задержанной мелодии\",null)\n            var cue:Double?=null;var speech:Double?=null\n            await(\"actual prepared melody\",20_000) {\n                val lines=shell(\"logcat -d -v epoch -s FinalAlarmAudio:I\").lineSequence().toList()\n                cue=lines.firstOrNull { it.contains(\"Melody started event=$event\") }?.trim()?.substringBefore(' ')?.toDoubleOrNull()\n                speech=lines.firstOrNull { it.contains(\"Speech starting after melody event=$event\") }?.trim()?.substringBefore(' ')?.toDoubleOrNull()\n                cue!=null && speech!=null\n            }\n            Assert.assertTrue(\"Custom cue gets its doubled six seconds after the slow provider opens\",speech!!-cue!!>=5.7)\n        } finally { FinalAlarmSignalPlayer.stop(event) }\n    }",
-        "new": "    @Test fun slowCustomMelodyActuallyStartsBeforeTheSpeechDelayBegins() {\n        shell(\"logcat -c\")\n        val prefs=app.getSharedPreferences(\"nezabudka_final_prefs\",0)\n        prefs.edit().putString(\"settings_melody_uri\",\"content://com.nezabudka.testfixture.slowmedia/slow-tone\").putInt(\"settings_global_volume\",80).commit()\n        main()\n        val event=runBlocking {\n            val id=service.createOneShot(\"Проверка задержанной мелодии\",System.currentTimeMillis()+3_000)\n            dao.eventsForReminder(id).single().id\n        }\n        try {\n            await(\"Actual AlarmManager / foreground service delivery\",20_000) {runBlocking {dao.event(event)?.state==EventState.FIRING}}\n            var cue:Double?=null;var speech:Double?=null\n            await(\"actual prepared melody\",20_000) {\n                val lines=shell(\"logcat -d -v epoch -s FinalAlarmAudio:I\").lineSequence().toList()\n                cue=lines.firstOrNull { it.contains(\"Melody started event=$event\") }?.trim()?.substringBefore(' ')?.toDoubleOrNull()\n                speech=lines.firstOrNull { it.contains(\"Speech starting after melody event=$event\") }?.trim()?.substringBefore(' ')?.toDoubleOrNull()\n                cue!=null && speech!=null\n            }\n            Assert.assertTrue(\"Custom cue gets its doubled six seconds after the slow provider opens\",speech!!-cue!!>=5.7)\n        } finally { FinalAlarmSignalPlayer.stop(event) }\n    }",
+        "old": "    @Test fun slowCustomMelodyActuallyStartsBeforeTheSpeechDelayBegins() {\n        shell(\"logcat -c\")\n        val prefs=app.getSharedPreferences(\"nezabudka_final_prefs\",0)\n        prefs.edit().putString(\"settings_melody_uri\",\"content://com.nezabudka.testfixture.slowmedia/slow-tone\").putInt(\"settings_global_volume\",80).commit()\n        val (_,event)=seed()\n        try {\n            FinalAlarmSignalPlayer.play(app,event,\"Проверка задержанной мелодии\",null)\n            var cue:Double?=null;var speech:Double?=null\n            await(\"actual prepared melody\",20_000) {\n                val lines=shell(\"logcat -d -v epoch -s FinalAlarmAudio:I\").lineSequence().toList()\n                cue=lines.firstOrNull { it.contains(\"Melody started event=$event\") }?.trim()?.substringBefore(' ')?.toDoubleOrNull()\n                speech=lines.firstOrNull { it.contains(\"Speech starting after melody event=$event\") }?.trim()?.substringBefore(' ')?.toDoubleOrNull()\n                cue!=null && speech!=null\n            }\n            Assert.assertTrue(\"Entire twelve-second cue finishes before speech\",speech!!-cue!!>=11.7)\n            Assert.assertTrue(\"Completed cue is not looped\",speech!!-cue!!<15.0)\n        } finally { FinalAlarmSignalPlayer.stop(event) }\n    }",
+        "new": "    @Test fun slowCustomMelodyActuallyStartsBeforeTheSpeechDelayBegins() {\n        shell(\"logcat -c\")\n        val prefs=app.getSharedPreferences(\"nezabudka_final_prefs\",0)\n        prefs.edit().putString(\"settings_melody_uri\",\"content://com.nezabudka.testfixture.slowmedia/slow-tone\").putInt(\"settings_global_volume\",80).commit()\n        main()\n        val event=runBlocking {\n            val id=service.createOneShot(\"Проверка задержанной мелодии\",System.currentTimeMillis()+3_000)\n            dao.eventsForReminder(id).single().id\n        }\n        try {\n            await(\"Actual AlarmManager / foreground service delivery\",20_000) {runBlocking {dao.event(event)?.state==EventState.FIRING}}\n            var cue:Double?=null;var speech:Double?=null\n            await(\"actual prepared melody\",20_000) {\n                val lines=shell(\"logcat -d -v epoch -s FinalAlarmAudio:I\").lineSequence().toList()\n                cue=lines.firstOrNull { it.contains(\"Melody started event=$event\") }?.trim()?.substringBefore(' ')?.toDoubleOrNull()\n                speech=lines.firstOrNull { it.contains(\"Speech starting after melody event=$event\") }?.trim()?.substringBefore(' ')?.toDoubleOrNull()\n                cue!=null && speech!=null\n            }\n            Assert.assertTrue(\"Entire twelve-second cue finishes before speech\",speech!!-cue!!>=11.7)\n            Assert.assertTrue(\"Completed cue is not looped\",speech!!-cue!!<15.0)\n        } finally { FinalAlarmSignalPlayer.stop(event) }\n    }",
         "count": 1
       },
       {
@@ -257,11 +257,11 @@
         "count": 1
       }
     ],
-    "patched_sha256": "e071640ffbb3381e1327c2c5dfa22e0fd16489d0d2422b556f834bc5c457735d"
+    "patched_sha256": "d5fd0ecde78ad305d4b5771535f2a9a17b802d1bbacd3127fa7f2611dc11d416"
   },
   {
     "path": "app/src/androidTest/java/com/nezabudka/testharness/FinalMediaAndSettingsDeviceTest.kt",
-    "base_sha256": "2bf0c7935e2fd4454b797bca211fcd0c481d0e1176978b503cc6584424473fef",
+    "base_sha256": "d8f93f5a11e30bd8c1af861523dbda839a098889842b9725eb3b4c1c97e9ea90",
     "edits": [
       {
         "old": "        for(c in listOf(0xFF008CA1.toInt()",
@@ -269,6 +269,6 @@
         "count": 1
       }
     ],
-    "patched_sha256": "36e92045926ef464ab854c9aecc5acec7fd8722ee77d841a30a150834223b024"
+    "patched_sha256": "0d7a170217f12568a595912bc0e01fcc83e078c6aaac42e88a7e2889c3a878e3"
   }
 ]

@@ -53,6 +53,22 @@ def main():
   if len(rows)!=297:errors.append('Expected 297 actual/reference image pairs')
   report['uk_candidate_count']=len(list((root/'app/build/alpha3-evidence/pdf87-candidate-uk').glob('*.png')))
   if report['uk_candidate_count']!=297:errors.append('Expected 297 separate Ukrainian candidates')
+  night_reference=root/'app/src/test/snapshots/pdf87-night'
+  night_actual=root/'app/build/alpha3-evidence/pdf87-night-ru'
+  night_rows=[]
+  for golden in sorted(night_reference.glob('*.png')):
+   candidate=night_actual/golden.name
+   if not candidate.is_file():errors.append('Missing actual night '+golden.name);continue
+   with Image.open(golden) as g,Image.open(candidate) as c:
+    if g.size!=c.size:errors.append('Night image dimensions differ '+golden.name);continue
+    diff=ImageChops.difference(g.convert('RGB'),c.convert('RGB'))
+    count=sum(1 for pixel in diff.getdata() if pixel!=(0,0,0))
+    night_rows.append({'name':golden.name,'different_pixels':count})
+    if count:errors.append('Night render differs from approved '+golden.name)
+  report['pdf87_night_ru']=night_rows
+  if len(night_rows)!=297:errors.append('Expected 297 night actual/reference image pairs')
+  report['night_uk_candidate_count']=len(list((root/'app/build/alpha3-evidence/pdf87-night-uk').glob('*.png')))
+  if report['night_uk_candidate_count']!=297:errors.append('Expected 297 night Ukrainian candidates')
  report['errors']=errors;a.output.parent.mkdir(parents=True,exist_ok=True);a.output.write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
  print(json.dumps({k:v for k,v in report.items() if k not in ['tests','pdf87_ru']},ensure_ascii=False,indent=2))
  if errors:raise SystemExit(1)

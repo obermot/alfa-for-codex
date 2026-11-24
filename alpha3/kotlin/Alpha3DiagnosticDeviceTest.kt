@@ -83,8 +83,8 @@ class Alpha3DiagnosticDeviceTest : FinalDeviceFixture() {
             if(android.graphics.Color.alpha(safe.getPixel(x,y))>0 && (x !in 21..86 || y !in 21..86))outside.add("$x,$y")
         File(directory,"F28-safe-area.txt").writeText("outsidePixels=${outside.size}\n"+outside.take(200).joinToString("\n"))
         safe.recycle()
-        // Preserve the original strict colour contract; absent approval is not permission to substitute white.
-        for(c in listOf(0xFF008CA1.toInt(),0xFFF2F2D3.toInt(),0xFF00AEC9.toInt()))
+        // The current approved PDF and owner confirmation require the white logo.
+        for(c in listOf(0xFF008CA1.toInt(),0xFFFFFFFF.toInt(),0xFF00AEC9.toInt()))
             assertTrue("Original owner palette missing ${c.toUInt().toString(16)}",(counts[c]?:0)>50)
         assertTrue("Logo outside original adaptive safe area",outside.isEmpty())
     }
@@ -111,9 +111,12 @@ class Alpha3DiagnosticDeviceTest : FinalDeviceFixture() {
     @Test fun geometryImeAndTheme() {
         val id=futureDaily("Адаптивность: длинный текст напоминания для проверки двух строк")
         main();menu();tap("Оформление")
-        ui.onNodeWithText("Тёмная тема").assertIsNotEnabled()
-        ui.onNodeWithText("Светлая тема").assertIsEnabled()
-        evidence("matrix-light-theme-and-disabled-dark")
+        ui.onNodeWithText("Тёмная тема").assertIsEnabled().performTouchInput {click()}
+        await("approved dark theme persisted") {app.getSharedPreferences("nezabudka_final_prefs",0).getString("appearance",null)=="dark"}
+        evidence("matrix-approved-dark-theme")
+        ui.onNodeWithText("Светлая тема").assertIsEnabled().performTouchInput {click()}
+        await("light theme restored") {app.getSharedPreferences("nezabudka_final_prefs",0).getString("appearance",null)=="light"}
+        evidence("matrix-approved-light-theme")
         device.pressBack();text("Настройки");device.pressBack();text("Текущие напоминания")
         tap("Адаптивность: длинный текст напоминания для проверки двух строк")
         val back=ui.onNodeWithContentDescription("Назад").fetchSemanticsNode().boundsInRoot

@@ -730,7 +730,10 @@
     "com.nezabudka.testharness.TemporalParserTest.relativeTenMinutes",
     "com.nezabudka.testharness.TemporalParserTest.reportedSpeechStillDoesNotCreateReminder",
     "com.nezabudka.testharness.TemporalParserTest.taskFirstNaturalSpeechAndCoupleOfMinutesAreRecognizedOffline",
-    "com.nezabudka.testharness.TemporalParserTest.timeFirstTriggerUsesLexiconWithoutPollutingTaskText"
+    "com.nezabudka.testharness.TemporalParserTest.timeFirstTriggerUsesLexiconWithoutPollutingTaskText",
+    "com.nezabudka.testharness.FinalDisclosureUiTest.phoneMelodyChoicesPersistAndAddingAFileDoesNotReplaceTheSelection",
+    "com.nezabudka.testharness.FinalDisclosureUiTest.customMelodyCatalogSurvivesReloadAndKeepsTheDefaultAndSilentChoices",
+    "com.nezabudka.testharness.FinalSilentAlarmVibrationTest.zeroAppVolumeVibratesAndAcknowledgementCancelsIt"
   ],
   "android": [
     "com.nezabudka.testharness.FinalAlarmDeviceTest.actualAlarmManagerDeliveryCompactTapFullAndClose",
