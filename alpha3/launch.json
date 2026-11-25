@@ -1,10 +1,10 @@
 {
   "campaign": "Alpha 3",
-  "launch": 5,
-  "scope": "full",
+  "launch": 6,
+  "scope": "android",
   "source_commit": "f4fa14ffee657c2d400e51b85f8e78c8f231a47c",
-  "reviewed_preparation_commit": "3256c2710667097aee050d0eb57512a6d72472c1",
+  "reviewed_preparation_commit": "d594dd4478139dc7ca4a498cd82d7b6cb290f4f2",
   "baseline_unit_scenarios": 739,
   "baseline_android_scenarios": 78,
-  "reason": "Final739/lint/1782PNG review passed; fix clarification date across midnight, preserve task, align obsolete source checks; repeat all original Android scenarios"
+  "reason": "Same reviewed production source; verify one necessary English Activity-recreation and relaunch diagnostic, retain all78Android scenarios and screen matrix; Alpha5 full739/lint/sixPDF batches passed"
 }
