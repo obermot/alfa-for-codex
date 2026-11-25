@@ -15,6 +15,35 @@ import java.io.File
 @RunWith(AndroidJUnit4::class)
 class Alpha3DiagnosticDeviceTest : FinalDeviceFixture() {
     private fun evidence(label:String)=Alpha3TestSupport.capture(inst,ui,label)
+    @Test fun englishLanguageAndDirtyNoteSurviveActivityRecreationAndRelaunch() {
+        val id=futureDaily("Original user text — не переводить")
+        val originalLocale=java.util.Locale.getDefault()
+        val prefs=app.getSharedPreferences("nezabudka_final_prefs",0)
+        prefs.edit().putString("settings_voice","Мужской").commit()
+        FinalUiLanguage.select(app,FinalUiLanguage.ENGLISH)
+        androidx.test.core.app.ActivityScenario.launch<FinalMainActivity>(
+            android.content.Intent(app,FinalMainActivity::class.java)).use { scenario ->
+            text("Current reminders");tap("Original user text — не переводить");tap("Add a note")
+            ui.onNode(hasSetTextAction()).performTextInput("Unsaved draft — код512")
+            scenario.recreate()
+            text("Done")
+            ui.onNode(hasSetTextAction()).assertTextEquals("Unsaved draft — код512")
+            assertTrue(reminder(id)?.note.isNullOrBlank())
+            assertEquals(FinalUiLanguage.ENGLISH,FinalUiLanguage.read(app))
+            evidence("english-dirty-note-after-recreation")
+            tap("Done")
+            await("English note committed only by Done") {reminder(id)?.note=="Unsaved draft — код512"}
+            text("Editing")
+        }
+        // A new Activity reads persisted language; this is not a process-death claim.
+        launchMain();text("Editing");tap("Unsaved draft — код512");text("Done")
+        ui.onNode(hasSetTextAction()).assertTextEquals("Unsaved draft — код512")
+        assertEquals(FinalUiLanguage.ENGLISH,FinalUiLanguage.read(app))
+        assertEquals("Original user text — не переводить",reminder(id)?.text)
+        assertEquals("Мужской",prefs.getString("settings_voice",null))
+        assertEquals(originalLocale,java.util.Locale.getDefault())
+        evidence("english-note-after-new-activity-launch")
+    }
     private fun menu() {
         val b=ui.onNodeWithText("Все").fetchSemanticsNode().boundsInRoot
         ui.onRoot().performTouchInput { click(androidx.compose.ui.geometry.Offset(b.right+115*b.width/170,b.center.y)) }

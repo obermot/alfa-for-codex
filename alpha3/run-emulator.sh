@@ -59,7 +59,7 @@ if ! grep -Fq 'com.nezabudka.preview.test/androidx.test.runner.AndroidJUnitRunne
   printf 'Instrumentation disappeared after baseline; diagnostics cannot execute.\n' >&2
   failure=1
 fi
-python3 "$task_tools/instrument.py" --profile unresolved --expected 6 \
+python3 "$task_tools/instrument.py" --profile unresolved --expected 7 \
   --tests com.nezabudka.testharness.Alpha3DiagnosticDeviceTest || failure=1
 collect unresolved-device
 
