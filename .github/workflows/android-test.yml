@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: obermot/nezabudka-for-codex
-          ref: 203e9e1cee402851d458b92efe822896a0042e89
+          ref: f4fa14ffee657c2d400e51b85f8e78c8f231a47c
           token: ${{ secrets.NEZABUDKA_SOURCE_TOKEN }}
           path: source
           persist-credentials: false
@@ -113,7 +113,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: obermot/nezabudka-for-codex
-          ref: 203e9e1cee402851d458b92efe822896a0042e89
+          ref: f4fa14ffee657c2d400e51b85f8e78c8f231a47c
           token: ${{ secrets.NEZABUDKA_SOURCE_TOKEN }}
           path: source
           persist-credentials: false
@@ -250,7 +250,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: obermot/nezabudka-for-codex
-          ref: 203e9e1cee402851d458b92efe822896a0042e89
+          ref: f4fa14ffee657c2d400e51b85f8e78c8f231a47c
           token: ${{ secrets.NEZABUDKA_SOURCE_TOKEN }}
           path: source
           persist-credentials: false

@@ -4,7 +4,7 @@ from pathlib import Path
 import argparse, hashlib, json, re, subprocess, difflib
 
 HERE=Path(__file__).resolve().parent
-PIN='203e9e1cee402851d458b92efe822896a0042e89'
+PIN='f4fa14ffee657c2d400e51b85f8e78c8f231a47c'
 def sha(b):return hashlib.sha256(b).hexdigest()
 def git(root,*args):return subprocess.check_output(['git','-C',str(root),*args],text=True).strip()
 def method_names(s):return sorted(re.findall(r'\bfun\s+(`[^`]+`|\w+)\s*\(',s))

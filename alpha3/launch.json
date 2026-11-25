@@ -1,10 +1,10 @@
 {
   "campaign": "Alpha 3",
-  "launch": 4,
+  "launch": 5,
   "scope": "full",
-  "source_commit": "203e9e1cee402851d458b92efe822896a0042e89",
-  "reviewed_preparation_commit": "ba6ab832cc3160d21915798bd6c0e56f98566100",
+  "source_commit": "f4fa14ffee657c2d400e51b85f8e78c8f231a47c",
+  "reviewed_preparation_commit": "3256c2710667097aee050d0eb57512a6d72472c1",
   "baseline_unit_scenarios": 739,
   "baseline_android_scenarios": 78,
-  "reason": "Verified day/night and Rus/Ukr/Eng source: isolated single-Done fix, English UI/instruction and approved reminder fixes"
+  "reason": "Final739/lint/1782PNG review passed; fix clarification date across midnight, preserve task, align obsolete source checks; repeat all original Android scenarios"
 }
